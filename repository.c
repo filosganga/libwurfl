@@ -11,6 +11,7 @@
 
 struct _repository {
 	char* version;
+	hashmap_t* devices_by_id;
 };
 
 static repository* alloc_repository(){

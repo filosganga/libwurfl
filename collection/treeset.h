@@ -10,26 +10,26 @@
 
 #include <sys/types.h>
 
-typedef struct _TreeSet TreeSet;
+typedef struct _treeset_t treeset_t;
 
-TreeSet* treeset_create(
+treeset_t* treeset_create(
 		coll_cmp item_cmp,
-		coll_cloneItem item_clone, coll_freeItem item_free);
+		coll_clone_item item_clone, coll_free_item item_free);
 
-void* treeset_put(TreeSet* treeset, void* item);
+void* treeset_put(treeset_t* treeset, void* item);
 
-void* treeset_get(TreeSet* treeset, void* item);
+void* treeset_get(treeset_t* treeset, void* item);
 
-void* treeset_remove(TreeSet* treeset, void* item);
+void* treeset_remove(treeset_t* treeset, void* item);
 
-u_int32_t treeset_size(TreeSet* treeset);
+u_int32_t treeset_size(treeset_t* treeset);
 
-int treeset_empty(TreeSet* treeset);
+int treeset_empty(treeset_t* treeset);
 
-int treeset_contains(TreeSet* treeset, void* item);
+int treeset_contains(treeset_t* treeset, void* item);
 
-void treeset_clear(TreeSet* treeset);
+void treeset_clear(treeset_t* treeset);
 
-void treeset_destroy(TreeSet* treeset);
+void treeset_destroy(treeset_t* treeset);
 
 #endif /* TREESET_H_ */

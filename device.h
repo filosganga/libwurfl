@@ -11,7 +11,7 @@
 
 typedef struct _device device;
 
-device* device_create(device_hierarchy* hierarchy);
+device* device_create(device_hierarchy_t* hierarchy);
 
 void device_destroy(device* device);
 

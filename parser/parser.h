@@ -10,6 +10,6 @@
 
 #include "../repository.h"
 
-device_definition** parse_resource(char* resource);
+devicedef_t** parse_resource(char* resource);
 
 #endif /* PARSER_H_ */

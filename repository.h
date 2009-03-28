@@ -8,37 +8,42 @@
 #ifndef MODEL_H_
 #define MODEL_H_
 
+#include "collection/hashmap.h"
+#include "collection/linkedlist.h"
+
 // DeviceDefinition *******************************************************
 
-typedef struct _device_definiton {
-	char* id;
-	char* user_agent;
-	char* fall_back;
-	int actual_device_root;
-} device_definition;
+typedef struct _devicedef_t devicedef_t;
 
-device_definition* create_device_definition(char* id, char* user_agent, char* fall_back, int actual_device_root);
+devicedef_t* devicedef_create(char* id, char* user_agent, char* fall_back, int actual_device_root, hashmap_t* capabilities, hashmap_t* groups);
 
-void destroy_device_definition(device_definition* device);
+void devicedef_destroy(devicedef_t* device);
+
+char* devicedef_get_id(devicedef_t* devicedef);
+
+char* devicedef_get_user_agent(devicedef_t* devicedef);
+
+char* devicedef_get_fall_back(devicedef_t* devicedef);
+
+char* devicedef_is_root(devicedef_t* devicedef);
+
+int devicedef_cmp(const devicedef_t* ldevicedef, const devicedef_t* rdevicedef);
 
 // Hierarchy **************************************************************
 
-typedef struct _device_hierarchy {
-	int lenght;
-	device_definition* devices;
-} device_hierarchy;
+typedef struct _device_hierarchy device_hierarchy_t;
 
-device_hierarchy* create_hierarchy(void* devices);
+device_hierarchy_t* create_hierarchy(linkedlist_t* devices);
 
-void destroy_hierarchy(device_hierarchy* hierarchy);
+void destroy_hierarchy(device_hierarchy_t* hierarchy);
 
-int hierarchy_get_size(device_hierarchy* hierarchy);
+int hierarchy_get_size(device_hierarchy_t* hierarchy);
 
-char* hierarchy_get_capability(device_hierarchy* hierarchy, char* name);
+char* hierarchy_get_capability(device_hierarchy_t* hierarchy, char* name);
 
-device_definition* hierarchy_get_target(device_hierarchy* hierarchy);
+devicedef_t* hierarchy_get_target(device_hierarchy_t* hierarchy);
 
-device_definition* hierarchy_get_device(device_hierarchy* hierarchy, int index);
+devicedef_t* hierarchy_get_device(device_hierarchy_t* hierarchy, u_int32_t index);
 
 // Repository *************************************************************
 

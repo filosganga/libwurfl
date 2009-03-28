@@ -8,30 +8,31 @@
 #ifndef HASHSET_H_
 #define HASHSET_H_
 
+#include "collections.h"
 #include <sys/types.h>
 
-typedef struct _HashSet HashSet;
+typedef struct _hashset_t hashset_t;
 
-HashSet* hasset_create(
+hashset_t* hasset_create(
 		coll_hash item_hash, coll_hash item_rehash,
 		coll_cmp item_cmp,
-		coll_cloneItem item_clone, coll_freeItem item_free);
+		coll_clone_item item_clone, coll_free_item item_free);
 
-void* hashset_put(HashSet* hashset, void* item);
+void* hashset_put(hashset_t* hashset, void* item);
 
-void* hashset_get(HashSet* hashset, void* item);
+void* hashset_get(hashset_t* hashset, void* item);
 
-void* hashset_remove(HashSet* hashset, void* item);
+void* hashset_remove(hashset_t* hashset, void* item);
 
-u_int32_t hashset_size(HashSet* hashset);
+u_int32_t hashset_size(hashset_t* hashset);
 
-int hashset_empty(HashSet* hashset);
+int hashset_empty(hashset_t* hashset);
 
-int hashset_contains(HashSet* hashset, void* item);
+int hashset_contains(hashset_t* hashset, void* item);
 
-void hashset_clear(HashSet* hashset);
+void hashset_clear(hashset_t* hashset);
 
-void hashset_destroy(HashSet* hashset);
+void hashset_destroy(hashset_t* hashset);
 
 
 #endif /* HASHSET_H_ */

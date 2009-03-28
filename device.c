@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 struct _device {
-	device_hierarchy* hierarchy;
+	device_hierarchy_t* hierarchy;
 };
 
 static device* device_alloc(){
@@ -20,7 +20,7 @@ static device* device_alloc(){
 	return dev;
 }
 
-device* device_create(device_hierarchy* hierarchy) {
+device* device_create(device_hierarchy_t* hierarchy) {
 
 	device* dev = device_alloc();
 
@@ -42,11 +42,11 @@ char* device_get_capability(device* dev, char* name) {
 
 char* device_get_id(device* dev) {
 
-	return hierarchy_get_target(dev->hierarchy)->id;
+	return devicedef_get_id(hierarchy_get_target(dev->hierarchy));
 }
 
 char* device_get_user_agent(device* dev) {
 
-	return hierarchy_get_target(dev->hierarchy)->user_agent;
+	return devicedef_get_user_agent(hierarchy_get_target(dev->hierarchy));
 }
 

@@ -1,4 +1,4 @@
-#include "list_impl.h"
+#include "linkedlist_impl.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -6,7 +6,7 @@
 #ifdef IS_WINDOWS
 #include <windows.h>
 
-HANDLE list_get_heap(List* list)
+HANDLE list_get_heap(linkedlist_t* list)
 {
 
 	/* TODO consider use of one separate heap for the List */
@@ -21,21 +21,21 @@ HANDLE list_get_heap(List* list)
 	return heap_handle;
 }
 
-static List* allocateList() {
+static linkedlist_t* allocateList() {
 	HANDLE heap_handle = list_get_heap(NULL);
-	List* list = HeapAlloc(heap_handle, 0, sizeof(List));
+	linkedlist_t* list = HeapAlloc(heap_handle, 0, sizeof(linkedlist_t));
 
 	return list;
 }
 
-static ListNode* allocateListNode() {
+static linkedlist_node_t* allocateListNode() {
 	HANDLE heap_handle = list_get_heap(NULL);
-	ListNode* node = HeapAlloc(heap_handle, 0, sizeof(ListNode));
+	linkedlist_node_t* node = HeapAlloc(heap_handle, 0, sizeof(linkedlist_node_t));
 
 	return node;
 }
 
-static void freeList(List* toRemove){
+static void freeList(linkedlist_t* toRemove){
 	HANDLE heap_handle = list_get_heap(NULL);
 
 	if (!HeapFree(heap_handle, 0, list))
@@ -44,7 +44,7 @@ static void freeList(List* toRemove){
 	}
 }
 
-static void freeListNode(ListNode* toRemove){
+static void freeListNode(linkedlist_node_t* toRemove){
 	HANDLE heap_handle = list_get_heap(NULL);
 	if (!HeapFree(heap_handle, 0, toRemove))
 	{
@@ -57,21 +57,21 @@ static void freeListNode(ListNode* toRemove){
 
 #endif
 
-static List* list_allocate() {
+static linkedlist_t* list_allocate() {
 
-	List* list = NULL;
+	linkedlist_t* list = NULL;
 
 #ifdef _WIN32
 	HANDLE heap_handle = list_get_heap(NULL);
 
-	list = HeapAlloc(heap_handle, 0, sizeof(List));
+	list = HeapAlloc(heap_handle, 0, sizeof(linkedlist_t));
 #else
-	list = malloc(sizeof(List));
+	list = malloc(sizeof(linkedlist_t));
 #endif
 	return list;
 }
 
-void list_free(List* list) {
+void list_free(linkedlist_t* list) {
 
 #ifdef _WIN32
 	HANDLE heap_handle = list_get_heap(NULL);
@@ -85,7 +85,7 @@ void list_free(List* list) {
 #endif
 }
 
-void list_freeNode(List* list, ListNode *toRemove) {
+void linkedlist_free_node(linkedlist_t* list, linkedlist_node_t *toRemove) {
 
 #ifdef _WIN32
 	HANDLE heap_handle = list_get_heap(NULL);
@@ -99,9 +99,9 @@ void list_freeNode(List* list, ListNode *toRemove) {
 #endif
 }
 
-ListNode* list_allocateNode(List* list, const void *item) {
+linkedlist_node_t* linkedlist_allocate_node(linkedlist_t* list, const void *item) {
 	void* duped_item;
-	ListNode* toAdd = NULL;
+	linkedlist_node_t* toAdd = NULL;
 
 	duped_item = list->cloneItem(item);
 
@@ -109,9 +109,9 @@ ListNode* list_allocateNode(List* list, const void *item) {
 
 #ifdef _WIN32
 		HANDLE heap_handle = list_get_heap(NULL);
-		toAdd = HeapAlloc(heap_handle, 0, sizeof(ListNode));
+		toAdd = HeapAlloc(heap_handle, 0, sizeof(linkedlist_node_t));
 #else
-		toAdd = malloc(sizeof(ListNode));
+		toAdd = malloc(sizeof(linkedlist_node_t));
 #endif
 		if (toAdd) {
 			toAdd->item = duped_item;
@@ -129,8 +129,8 @@ ListNode* list_allocateNode(List* list, const void *item) {
 	return toAdd;
 }
 
-ListNode* list_getNodeAtIndex(List* list, unsigned int index) {
-	ListNode* toGet = NULL;
+linkedlist_node_t* linkedlist_get_nodeat(linkedlist_t* list, u_int32_t index) {
+	linkedlist_node_t* toGet = NULL;
 	int i;
 
 	assert(list!=NULL);
@@ -361,29 +361,29 @@ ListNode* list_getNodeAtIndex(List* list, unsigned int index) {
 
 // User interface *********************************************************
 
-int list_add(List* list, const void* item) {
-	return list_addAtIndex(list, list->size, item);
+int linkedlist_add(linkedlist_t* list, const void* item) {
+	return linkedlist_addat(list, list->size, item);
 }
 
-int list_addAtIndex(List* list, unsigned int index, const void* item) {
+int linkedlist_addat(linkedlist_t* list, u_int32_t index, const void* item) {
 
-	ListNode* prevNode = NULL;
-	ListNode* nextNode = NULL;
-	ListNode* toAdd = NULL;
+	linkedlist_node_t* prevNode = NULL;
+	linkedlist_node_t* nextNode = NULL;
+	linkedlist_node_t* toAdd = NULL;
 	int res_code;
 
-	toAdd = list_allocateNode(list, item);
+	toAdd = linkedlist_allocate_node(list, item);
 	if (toAdd) {
 		toAdd->prev = NULL;
 		toAdd->next = NULL;
 
-		nextNode = list_getNodeAtIndex(list, index);
+		nextNode = linkedlist_get_nodeat(list, index);
 
 		if (nextNode != NULL) {
 			nextNode->prev = toAdd;
 			prevNode = nextNode->prev;
 		} else if (index > 0) {
-			prevNode = list_getNodeAtIndex(list, index - 1);
+			prevNode = linkedlist_get_nodeat(list, index - 1);
 		}
 
 		toAdd->prev = prevNode;
@@ -412,9 +412,9 @@ int list_addAtIndex(List* list, unsigned int index, const void* item) {
 
 }
 
-int list_indexOf(List* list, const void* item) {
+u_int32_t linkedlist_index(linkedlist_t* list, const void* item) {
 	int nodeIndex = 0;
-	ListNode* currentNode;
+	linkedlist_node_t* currentNode;
 
 	assert(list!=NULL);
 	//	assert(item!=NULL);
@@ -435,9 +435,9 @@ int list_indexOf(List* list, const void* item) {
 
 }
 
-int list_lastIndexOf(List* list, const void* item) {
+u_int32_t linkedlist_last_index(linkedlist_t* list, const void* item) {
 	int nodeIndex = 0;
-	ListNode* currentNode;
+	linkedlist_node_t* currentNode;
 
 	assert(list!=NULL);
 	//	assert(item!=NULL);
@@ -457,23 +457,23 @@ int list_lastIndexOf(List* list, const void* item) {
 
 }
 
-int list_remove(List* list, const void* item) {
+int linkedlist_remove(linkedlist_t* list, const void* item) {
 
-	void* toRemove = list_removeAtIndex(list, list_indexOf(list, item));
+	void* toRemove = linkedlist_removeat(list, linkedlist_index(list, item));
 
 	return toRemove != NULL;
 }
 
-void* list_removeAtIndex(List* list, unsigned int index) {
+void* linkedlist_removeat(linkedlist_t* list, u_int32_t index) {
 
-	ListNode* toRemove;
+	linkedlist_node_t* toRemove;
 	void *removedItem = NULL;
 
 	assert(list!=NULL);
 	assert(list->size>0);
 	assert(index<list->size);
 
-	toRemove = list_getNodeAtIndex(list, index);
+	toRemove = linkedlist_get_nodeat(list, index);
 
 	assert(toRemove!=NULL);
 
@@ -499,33 +499,33 @@ void* list_removeAtIndex(List* list, unsigned int index) {
 	removedItem = toRemove->item;
 
 	// free memory only for node not for item
-	list_freeNode(list, toRemove);
+	linkedlist_free_node(list, toRemove);
 
 	return removedItem;
 
 } // list_removeAtIndex
 
-void* list_get(List* list, unsigned int index) {
-	ListNode* toGet;
+void* linkedlist_get(linkedlist_t* list, u_int32_t index) {
+	linkedlist_node_t* toGet;
 
 	assert(list!=NULL);
 	assert(index<list->size);
 
 	// Obtain node
-	toGet = list_getNodeAtIndex(list, index);
+	toGet = linkedlist_get_nodeat(list, index);
 
 	return toGet->item;
 } // list_get
 
 // Modify list functions **************************************************
 
-List* list_create(coll_cmp cmpItem, coll_cloneItem cloneItem, coll_freeItem freeItem) {
+linkedlist_t* linkedlist_create(coll_cmp cmpItem, coll_clone_item cloneItem, coll_free_item freeItem) {
 
 	assert(cmpItem != NULL);
 	assert(cloneItem!=NULL);
 	assert(freeItem!=NULL);
 
-	List* list = list_allocate();
+	linkedlist_t* list = list_allocate();
 	if (list != NULL) {
 
 		list->start = NULL;
@@ -546,22 +546,22 @@ List* list_create(coll_cmp cmpItem, coll_cloneItem cloneItem, coll_freeItem free
 	return list;
 }
 
-void list_destroy(List* list) {
+void linkedlist_destroy(linkedlist_t* list) {
 
 	assert(list != NULL);
 
-	list_clear(list);
+	linkedlist_clear(list);
 	list_free(list);
 }
 
-void list_clear(List* list) {
+void linkedlist_clear(linkedlist_t* list) {
 	void* itemToFree;
-	ListNode* next = list->start;
+	linkedlist_node_t* next = list->start;
 
 	assert(list != NULL);
 
 	while (next != NULL) {
-		ListNode* toFree = next;
+		linkedlist_node_t* toFree = next;
 		next = toFree->next;
 
 		if (next != NULL) {
@@ -575,32 +575,32 @@ void list_clear(List* list) {
 
 		itemToFree = toFree->item;
 
-		list_freeNode(list, toFree);
+		linkedlist_free_node(list, toFree);
 		list->freeItem(itemToFree);
 	}
 
 }
 
-int list_isEmpty(List* list) {
+int linkedlist_empty(linkedlist_t* list) {
 
 	assert(list!=NULL);
 
 	return list->size == 0;
 }
 
-int list_getSize(List* list) {
+u_int32_t linkedlist_size(linkedlist_t* list) {
 	assert(list!=NULL);
 
 	return list->size;
 }
 
-ListStats list_getStatus(List* list) {
+linkedliststatus_t linkedlist_status(linkedlist_t* list) {
 	assert(list!=NULL);
 
 	return list->stats;
 }
 
-void** list_toArray(List* list, void* array[]) {
+void** linkedlist_to_array(linkedlist_t* list, void* array[]) {
 	//	int index = 0,i =0;
 	//	void* tmpItem;
 	//	ListNode* current;	/* TODO validate arguments */
