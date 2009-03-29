@@ -18,9 +18,7 @@ struct _linkedlist_t
 	linkedlist_node_t* end;
 
 	/* functions */
-	coll_cmp cmpItem;
-	coll_clone_item cloneItem;
-	coll_free_item freeItem;
+	coll_equals_f item_equals;
 
 	/* state */
 	u_int32_t size;
@@ -29,16 +27,16 @@ struct _linkedlist_t
 
 /* Libera la memoria precedentemente allocata tramite list_allocate().
  * pre: list!= NULL, list deve puntare ad un area allocata tramite list_allocate() */
-void list_free(linkedlist_t* list);
+void linkedlist_free(linkedlist_t* list);
 
 /* Alloca un nodo della lista.
  * pre: list!=NULL
  * return: puntatore alla memoria allocata */
-linkedlist_node_t* linkedlist_allocate_node(linkedlist_t* list, const void* item);
+linkedlist_node_t* linkedlist_node_create(linkedlist_t* list, const void* item);
 
 /* Libera la memoria allocata precedentemente dalla funzione list_allocateNode().
  * pre: list!=NULL, node!=NULL, node deve puntare ad un area precedentemente allocata da list_allocateNode() */
-void linkedlist_free_node(linkedlist_t* list, linkedlist_node_t* node);
+void linkedlist_node_destroy(linkedlist_t* list, linkedlist_node_t* node);
 
 /* Restituisce il nodo all'indice index.
  * pre: list!=NULL, index<list->size.

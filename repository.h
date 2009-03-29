@@ -25,9 +25,14 @@ char* devicedef_get_user_agent(devicedef_t* devicedef);
 
 char* devicedef_get_fall_back(devicedef_t* devicedef);
 
-char* devicedef_is_root(devicedef_t* devicedef);
+int devicedef_is_root(devicedef_t* devicedef);
 
-int devicedef_cmp(const devicedef_t* ldevicedef, const devicedef_t* rdevicedef);
+int devicedef_cmp(const void* ldevicedef, const void* rdevicedef);
+
+int devicedef_equals(const void* ldevicedef, const void* rdevicedef);
+
+unsigned long devicedef_hash(const void* devicedef);
+
 
 // Hierarchy **************************************************************
 

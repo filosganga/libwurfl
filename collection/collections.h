@@ -14,19 +14,11 @@ enum coll_errors {COLL_OK = 0, COLL_NOMEM};
  *
  * @return -1 if litem<ritem, 0 if the items are equals, 1 if litem>ritem
  */
-typedef int (*coll_cmp)(const void* litem, const void *ritem);
+typedef int (*coll_cmp_f)(const void* litem, const void *ritem);
 
-typedef void *(*coll_clone_item)(const void *item);
+typedef int (*coll_equals_f)(const void* litem, const void *ritem);
 
-typedef void (*coll_free_item)(void *item);
-
-typedef unsigned long (*coll_hash)(void *item);
-
-
-void* clone_item_nop(const void *item);
-
-void free_item_nop(void *item);
-
+typedef unsigned long (*coll_hash_f)(void *item);
 
 u_int32_t string_hash(const void* string);
 

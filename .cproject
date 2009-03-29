@@ -33,8 +33,8 @@
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.so.debug.2067599104" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.so.debug">
 <option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.so.debug.option.optimization.level.1005585188" name="Optimization Level" superClass="gnu.c.compiler.so.debug.option.optimization.level" value="gnu.c.optimization.level.more" valueType="enumerated"/>
 <option id="gnu.c.compiler.so.debug.option.debugging.level.1295206786" name="Debug Level" superClass="gnu.c.compiler.so.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
-<option id="gnu.c.compiler.option.misc.other.1972255343" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0" valueType="string"/>
-<option id="gnu.c.compiler.option.include.paths.2055678198" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+<option id="gnu.c.compiler.option.misc.other.1972255343" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -std=c99" valueType="string"/>
+<option id="gnu.c.compiler.option.include.paths.2055678198" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="/usr/include/libxml2"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.16466934" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>

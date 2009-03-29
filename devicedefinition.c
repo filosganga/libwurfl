@@ -10,8 +10,9 @@
 #include "collection/hashmap.h"
 
 #include <stdlib.h>
+#include <string.h>
 
-typedef struct _devicedef_t {
+struct _devicedef_t {
 	char* id;
 	char* user_agent;
 	char* fall_back;
@@ -61,8 +62,29 @@ char* devicedef_get_fall_back(devicedef_t* devicedef) {
 	return devicedef->fall_back;
 }
 
-char* devicedef_is_root(devicedef_t* devicedef) {
+int devicedef_is_root(devicedef_t* devicedef) {
 	return devicedef->actual_device_root;
 }
 
+int devicedef_cmp(const void* litem, const void* ritem) {
 
+	devicedef_t* ldevicedef = (devicedef_t*)litem;
+	devicedef_t* rdevicedef = (devicedef_t*)ritem;
+
+	return strcmp(ldevicedef->id,rdevicedef->id);
+}
+
+int devicedef_equals(const void* litem, const void* ritem) {
+
+	return devicedef_cmp(litem, ritem) == 0;
+}
+
+unsigned long devicedef_hash(const void* item) {
+
+	devicedef_t* devicedef = (devicedef_t*)item;
+
+	unsigned long namehash = string_hash("devicedef");
+	unsigned long idhash = string_hash(devicedef->id);
+
+	return namehash + idhash;
+}

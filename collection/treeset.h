@@ -13,7 +13,7 @@
 typedef struct _treeset_t treeset_t;
 
 treeset_t* treeset_create(
-		coll_cmp item_cmp,
+		coll_cmp_f item_cmp,
 		coll_clone_item item_clone, coll_free_item item_free);
 
 void* treeset_put(treeset_t* treeset, void* item);

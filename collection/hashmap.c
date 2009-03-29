@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 typedef struct _hashmap_item_t {
 	void *key;
@@ -12,74 +13,52 @@ typedef struct _hashmap_item_t {
 
 struct _hashmap_t {
 	hshtbl* hashtable;
-	coll_hash key_hash;
-	coll_hash key_rehash;
-	coll_clone_item key_clone;
-	coll_free_item key_free;
-	coll_cmp key_cmp;
-	coll_clone_item item_clone;
-	coll_free_item item_free;
+	coll_hash_f key_hash;
+	coll_cmp_f key_cmp;
 };
 
-static int hashtable_cmp(void* litem, void* ritem) {
+static int item_cmp(void* litem, void* ritem) {
 	hashmap_item_t* lHashMapItem = (hashmap_item_t*)litem;
 	hashmap_item_t* rHashMapItem = (hashmap_item_t*)ritem;
 
 	return lHashMapItem->owner->key_cmp(lHashMapItem->key, rHashMapItem->key);
 }
 
-static void* hashtable_create(hashmap_t* hashmap, void* key, void* item) {
+static hashmap_item_t* item_create(hashmap_t* hashmap, void* key, void* item) {
 	hashmap_item_t* hashMapItem = malloc(sizeof(hashmap_item_t));
-	hashMapItem->key = hashmap->key_clone(key);
-	hashMapItem->item = hashmap->item_clone(item);
+	hashMapItem->key = key;
+	hashMapItem->item = item;
 	hashMapItem->owner = hashmap;
 }
 
-static void *hashtable_clone(void *item) {
+static void* item_clone(void *item) {
 
-	hashmap_item_t* toClone = (hashmap_item_t*)item;
-	hashmap_t* map = toClone->owner;
-
-	hashmap_item_t* hashMapItem = malloc(sizeof(hashmap_item_t));
-	hashMapItem->key = map->key_clone(toClone->key);
-	hashMapItem->item = map->item_clone(toClone->item);
-	hashMapItem->owner = toClone->owner;
-
-	return hashMapItem;
+	return item;
 }
 
-static void hashtable_free(void *item) {
-	hashmap_item_t* hashMapItem = (hashmap_item_t*)item;
-	hashmap_t* map = hashMapItem->owner;
+static void item_free(void *item) {
 
-	map->key_free(hashMapItem->key);
-	map->item_free(hashMapItem->item);
-
-	free(hashMapItem);
+	hashmap_item_t* hashmap_item = malloc(sizeof(hashmap_item_t));
+	free(hashmap_item);
 }
 
-static unsigned long hashtable_hash(void *item) {
+static unsigned long item_hash(void *item) {
 	hashmap_item_t* hashMapItem = (hashmap_item_t*)item;
 	hashmap_t* map = hashMapItem->owner;
 
 	return map->key_hash(hashMapItem->key);
 }
 
-static unsigned long hashtable_rehash(void *item) {
-	hashmap_item_t* hashMapItem = (hashmap_item_t*)item;
-	hashmap_t* map = hashMapItem->owner;
+static unsigned long item_rehash(void *item) {
 
-	return map->key_rehash(hashMapItem->key);
+	unsigned long hash = item_hash(item);
+	return hash * 37;
 }
 
-hashmap_t* hashmap_create(
-		coll_hash key_hash, coll_hash key_rehash,
-		coll_cmp key_cmp,
-		coll_clone_item key_clone, coll_free_item key_free,
-		coll_clone_item item_clone, coll_free_item item_free) {
+hashmap_t* hashmap_create(coll_hash_f key_hash,coll_cmp_f key_cmp) {
 
 	hashmap_t* map = malloc(sizeof(hashmap_t));
-	map->hashtable = hshinit(&hashtable_hash, &hashtable_rehash, &hashtable_cmp, &hashtable_clone, &hashtable_free, 0);
+	map->hashtable = hshinit(&item_hash, &item_rehash, &item_cmp, &item_clone, &item_free, 0);
 
 	return map;
 }
@@ -87,19 +66,20 @@ hashmap_t* hashmap_create(
 
 void* hashmap_put(hashmap_t* hashmap, void* key, void* item) {
 
-	hashmap_item_t* hashMapItem = malloc(sizeof(hashmap_item_t));
-	hashMapItem->item = item;
-	hashMapItem->key = key;
-	hashMapItem->owner = hashmap;
+	// item can be NULL
+	assert(hashmap!=NULL);
+	assert(key!=NULL);
 
+	hashmap_item_t* hashMapItem = item_create(hashmap, key, item);
 	hshinsert(hashmap->hashtable, hashMapItem);
-
-	hashtable_free(hashMapItem);
 
 	return item;
 }
 
 void* hashmap_get(hashmap_t* hashmap, void* key) {
+
+	assert(hashmap!=NULL);
+	assert(key!=NULL);
 
 	void* item = NULL;
 
@@ -107,16 +87,20 @@ void* hashmap_get(hashmap_t* hashmap, void* key) {
 	hashMapItem.key = key;
 	hashMapItem.owner = hashmap;
 
-	hashmap_item_t* foundItem = hshfind(hashmap->hashtable, &hashMapItem);
+	hashmap_item_t* found = hshfind(hashmap->hashtable, &hashMapItem);
 
-	if(foundItem){
-		item = foundItem->item;
+	if(found){
+		item = found->item;
+		free(found);
 	}
 
 	return item;
 }
 
 void* hashmap_remove(hashmap_t* hashmap, void* key) {
+
+	assert(hashmap!=NULL);
+	assert(key!=NULL);
 
 	void* item = NULL;
 
@@ -127,8 +111,7 @@ void* hashmap_remove(hashmap_t* hashmap, void* key) {
 	hashmap_item_t* removed = hshdelete(hashmap->hashtable, &hashMapItem);
 
 	if(removed){
-		item = hashmap->item_clone(removed->item);
-		hashtable_free(removed);
+		item = removed->item;
 	}
 
 	return item;
@@ -136,21 +119,31 @@ void* hashmap_remove(hashmap_t* hashmap, void* key) {
 
 u_int32_t hashmap_size(hashmap_t* hashmap){
 
+	assert(hashmap!=NULL);
+
 	return (u_int32_t)hshstatus(hashmap->hashtable).hentries;
 }
 
 int hashmap_empty(hashmap_t* hashmap) {
 
-	return hashmap_size(hashmap)>0;
+	assert(hashmap!=NULL);
+
+	return hashmap_size(hashmap)==0;
 }
 
 int hashmap_contain_key(hashmap_t* hashmap, void* key) {
+
+	assert(hashmap!=NULL);
+
 	return hashmap_get(hashmap, key) != NULL;
 }
 
 void hashmap_clear(hashmap_t* hashmap) {
+
+	assert(hashmap!=NULL);
+
 	hshkill(hashmap->hashtable);
-	hashmap->hashtable = hshinit(&hashtable_hash, &hashtable_rehash, &hashtable_cmp, &hashtable_clone, &hashtable_free, 0);
+	hashmap->hashtable = hshinit(&item_hash, &item_rehash, &item_cmp, &item_clone, &item_free, 0);
 }
 
 void hashmap_destroy(hashmap_t* hashmap) {

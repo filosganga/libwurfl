@@ -13,11 +13,7 @@
 
 typedef struct _hashmap_t hashmap_t;
 
-hashmap_t* hashmap_create(
-		coll_hash key_hash, coll_hash key_rehash,
-		coll_cmp key_cmp,
-		coll_clone_item key_clone, coll_free_item key_free,
-		coll_clone_item item_clone, coll_free_item item_free);
+hashmap_t* hashmap_create(coll_hash_f key_hash, coll_cmp_f key_cmp);
 
 void* hashmap_put(hashmap_t* hashmap, void* key, void* item);
 

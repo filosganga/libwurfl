@@ -26,7 +26,9 @@ device_hierarchy_t* create_hierarchy(linkedlist_t* devices) {
 	assert(strcmp(devicedef_get_id(root),"generic")==0);
 
 	device_hierarchy_t* hierarchy = malloc(sizeof(device_hierarchy_t));
-	hierarchy->devices = linkedlist_create(&devicedef_cmp, &clone_item_nop, &free_item_nop);
+	hierarchy->devices = linkedlist_create(&devicedef_equals);
+
+	return hierarchy;
 }
 
 void destroy_hierarchy(device_hierarchy_t* hierarchy) {

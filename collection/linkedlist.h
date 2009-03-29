@@ -67,12 +67,11 @@ int linkedlist_empty(linkedlist_t* list);
 u_int32_t linkedlist_size(linkedlist_t* list);
 
 /* Instanziate a new List object
- * equals = function used to verify is two items are equals
- * dup = function used to allocate memory to store item;
- * undup = function used to deallocate memory, allocate by dup.
- * return: a pointer to created List
+ *
+ * @param item_cmp Function used to compare two items.
+ * @return Pointer to created List
  */
-linkedlist_t* linkedlist_create(coll_cmp cmpItem, coll_clone_item cloneItem, coll_free_item freeItem);
+linkedlist_t* linkedlist_create(coll_equals_f item_equals);
 
 /* Remove all items from list, and deallocate the memory to store its.
  * pre: list!= NULL.
@@ -89,8 +88,6 @@ void linkedlist_destroy(linkedlist_t*);
  */
 linkedliststatus_t linkedlist_status(linkedlist_t* list);
 
-
-/* TODO */
-void** linkedlist_to_array(linkedlist_t* list, void* array[]);
+void** linkedlist_to_array(linkedlist_t* list);
 
 #endif /*LIST_H_*/

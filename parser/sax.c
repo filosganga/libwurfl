@@ -6,8 +6,9 @@
  */
 #include "parser.h"
 #include "../repository.h"
-#include "../collection/linkedlist.h"
+#include "../collection/collections.h"
 #include "../collection/hashmap.h"
+#include "../collection/hashset.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,7 +42,7 @@ struct _parse_context {
 
 	char* current_group_id;
 
-	linkedlist_t* devices;
+	hashset_t* devices;
 
 	hashmap_t* capabilities;
 	hashmap_t* groups;
@@ -68,28 +69,11 @@ static char* get_attribute(const xmlChar** attributes, xmlChar* name) {
 }
 
 
-static int device_definition_equals(const void *litem, const void *ritem) {
-
-	devicedef_t* ldev = (devicedef_t*)litem;
-	devicedef_t* rdev = (devicedef_t*)ritem;
-
-	return devicedef_cmp(ldev,rdev)==0;
-}
-
-static void* device_definition_clone(const void *item) {
-
-	return item;
-}
-
-static void device_definition_free (void *item) {
-
-}
-
 static void start_document(void *ctx){
 
 	parse_context* context = (parse_context*) ctx;
 
-	context->devices = linkedlist_create(&device_definition_equals, &device_definition_clone, &device_definition_free);
+	context->devices = hashset_create(&devicedef_hash, &devicedef_equals);
 }
 
 static void start_group(parse_context* context, const xmlChar** attributes) {
@@ -129,8 +113,8 @@ static void start_device(parse_context* context, const xmlChar** attributes) {
 
 	// FIXME check
 
-	context->capabilities = hashmap_create(&string_hash, &string_rehash, &string_cmp, &clone_item_nop, &free_item_nop, &clone_item_nop, &free_item_nop);
-	context->groups = hashmap_create(&string_hash, &string_rehash, &string_cmp, &clone_item_nop, &free_item_nop, &clone_item_nop, &free_item_nop);
+	context->capabilities = hashmap_create(&string_hash, &string_cmp);
+	context->groups = hashmap_create(&string_hash, &string_cmp);
 }
 
 static void end_device(parse_context* context) {
@@ -193,7 +177,7 @@ static void end_element(void *ctx, const xmlChar *localname,
 devicedef_t** parse_resource(char* resource) {
 
 	parse_context context;
-	context.devices = linkedlist_create(&device_definition_equals, &device_definition_clone, &device_definition_free);
+	context.devices = hashset_create(&devicedef_hash, &devicedef_equals);
 
 	xmlSAXHandler saxHandler;
 	memset(&saxHandler, 0, sizeof(saxHandler));
@@ -205,8 +189,7 @@ devicedef_t** parse_resource(char* resource) {
 
 	xmlSAXUserParseFile(&saxHandler, &context, resource);
 
-	devicedef_t** devices = malloc(sizeof(devicedef_t*) * linkedlist_size(context.devices));
-	linkedlist_to_array(context.devices, (void**)devices);
+	devicedef_t** devices = (devicedef_t**)hashset_to_array(context.devices);
 
 	return devices;
 }
