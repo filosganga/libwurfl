@@ -7,7 +7,7 @@
 #ifndef DEVICE_H_
 #define DEVICE_H_
 
-#include "repository.h"
+#include "resource/repository.h"
 
 typedef struct _device device;
 

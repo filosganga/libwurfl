@@ -5,9 +5,7 @@
  *      Author: filosganga
  */
 
-#include "repository.h"
-#include "collection/collections.h"
-#include "collection/hashmap.h"
+#include "devicedef-impl.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -71,7 +69,7 @@ int devicedef_cmp(const void* litem, const void* ritem) {
 	devicedef_t* ldevicedef = (devicedef_t*)litem;
 	devicedef_t* rdevicedef = (devicedef_t*)ritem;
 
-	return strcmp(ldevicedef->id,rdevicedef->id);
+	return strcmp(ldevicedef->id, rdevicedef->id);
 }
 
 int devicedef_equals(const void* litem, const void* ritem) {
@@ -83,8 +81,12 @@ unsigned long devicedef_hash(const void* item) {
 
 	devicedef_t* devicedef = (devicedef_t*)item;
 
-	unsigned long namehash = string_hash("devicedef");
-	unsigned long idhash = string_hash(devicedef->id);
+	return string_hash(devicedef->id);
+}
 
-	return namehash + idhash;
+unsigned long devicedef_rehash(const void* item) {
+
+	devicedef_t* devicedef = (devicedef_t*)item;
+
+	return string_rehash(devicedef->id);
 }

@@ -8,6 +8,7 @@
 #ifndef MODEL_H_
 #define MODEL_H_
 
+#include "resource/resource.h"
 #include "collection/hashmap.h"
 #include "collection/linkedlist.h"
 
@@ -33,6 +34,8 @@ int devicedef_equals(const void* ldevicedef, const void* rdevicedef);
 
 unsigned long devicedef_hash(const void* devicedef);
 
+unsigned long devicedef_rehash(const void* devicedef);
+
 
 // Hierarchy **************************************************************
 
@@ -52,10 +55,10 @@ devicedef_t* hierarchy_get_device(device_hierarchy_t* hierarchy, u_int32_t index
 
 // Repository *************************************************************
 
-typedef struct _repository repository;
+typedef struct _repository_t repository_t;
 
-repository* create_repository(char* root_path, char** patches_paths);
+repository_t* repository_create(resource_t* root, resource_t** patches);
 
-void destroy_repository(repository* rep);
+void destroy_repository(repository_t* repository);
 
 #endif /* MODEL_H_ */

@@ -6,6 +6,8 @@
  */
 
 #include "device.h"
+#include "resource/devicedef.h"
+#include "resource/hierarchy.h"
 
 #include <stdlib.h>
 
