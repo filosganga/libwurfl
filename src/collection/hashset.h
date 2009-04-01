@@ -33,7 +33,14 @@ void hashset_destroy(hashset_t* hashset);
 
 void** hashset_to_array(hashset_t* hashset);
 
-int hashset_foreach(hashset_t* hashset, coll_functor_f functor, void* context);
+void* hashset_find(hashset_t* hashset, coll_predicate_t predicate);
+
+int hashset_foreach(hashset_t* hashset, coll_functor_t functor);
+
+hashset_t* hashset_select(hashset_t* hashset, coll_predicate_t predicate);
+
+void hashset_filter(hashset_t* hashset, coll_predicate_t predicate); // TODO add removed
+
 
 
 #endif /* HASHSET_H_ */

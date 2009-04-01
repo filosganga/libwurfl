@@ -11,8 +11,14 @@ typedef int (*coll_functor_f)(const void* item, void* data);
 typedef struct {
 	coll_functor_f functor;
 	void* data;
-} functor_data_t;
+} coll_functor_t;
 
+typedef int (*coll_predicate_f)(const void*, void* data);
+
+typedef struct {
+	coll_predicate_f predicate;
+	void* data;
+} coll_predicate_t;
 /**
  * Compare two items.
  *

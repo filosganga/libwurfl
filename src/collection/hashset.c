@@ -24,6 +24,8 @@ typedef struct _hashset_item_t {
 	hashset_t* owner;
 } hashset_item_t;
 
+// Item functions *********************************************************
+
 static int hashset_item_cmp(void* litem, void* ritem) {
 	hashset_item_t* lhashset_item = (hashset_item_t*)litem;
 	hashset_item_t* rhashset_item = (hashset_item_t*)ritem;
@@ -64,15 +66,17 @@ static unsigned long hashset_item_rehash(void *item) {
 	return hashset_item->owner->item_rehash(hashset_item->item);
 }
 
-typedef struct _to_array_data_t {
+// Walker functions *******************************************************
+
+typedef struct {
 	void** array;
 	int index;
-} to_array_data_t;
+} walk_toarray_data_t;
 
-static int to_array(void* item, void* data, void* xtra) {
+static int walk_toarray(void* item, void* data, void* xtra) {
 
 	hashset_item_t* hashset_item = (hashset_item_t*)item;
-	to_array_data_t* to_array_data = data;
+	walk_toarray_data_t* to_array_data = data;
 
 	to_array_data->array[to_array_data->index] = hashset_item->item;
 	to_array_data->index++;
@@ -80,14 +84,77 @@ static int to_array(void* item, void* data, void* xtra) {
 	return 0;
 }
 
+typedef struct {
+	void* found;
+	coll_predicate_t* predicate;
+} walk_find_data_t;
+
+static int walk_find(void* item, void* data, void* xtra) {
+
+	hashset_item_t* hashset_item = (hashset_item_t*)item;
+	walk_find_data_t* walker_data = (walk_find_data_t*)data;
+
+	coll_predicate_f predicate = walker_data->predicate->predicate;
+	void* predicate_data = walker_data->predicate->data;
+
+	if(predicate(hashset_item->item, predicate_data)){
+		find_walker_data->found = hashset_item->item;
+		return 1;
+	}
+
+	return 0;
+}
+
+typedef struct {
+	coll_predicate_t* predicate;
+} walk_filter_data_t;
+
+static int walk_filter(void* item, void* data, void* xtra) {
+
+	hashset_item_t* hashset_item = (hashset_item_t*)item;
+	walk_filter_data_t* walker_data = (walk_filter_data_t*)data;
+
+	coll_predicate_f predicate = walker_data->predicate->predicate;
+	void* predicate_data = walker_data->predicate->data;
+
+	if(!predicate(hashset_item->item, predicate_data)){
+		hashset_remove(hashset_item->owner, hashset_item->item);
+		// TODO how destroy the removed elements
+	}
+
+	return 0;
+}
+
+typedef struct {
+	hashset_t* target;
+	coll_predicate_t* predicate;
+} walk_select_data_t;
+
+static int walk_select(void* item, void* data, void* xtra) {
+
+	hashset_item_t* hashset_item = (hashset_item_t*)item;
+	walk_select_data_t* walker_data = (walk_select_data_t*)data;
+
+	coll_predicate_f predicate = walker_data->predicate->predicate;
+	void* predicate_data = walker_data->predicate->data;
+
+	if(predicate(hashset_item->item, predicate_data)) {
+		hashset_add(walker_data->target, hashset_item->item);
+		// FIXME check status
+	}
+
+	return 0;
+}
+
 static int exec_functor(void* item, void* data, void* xtra) {
 
 	hashset_item_t* hashset_item = (hashset_item_t*)item;
-	functor_data_t* functor_data = data;
+	coll_functor_t* functor = data;
 
-	return functor_data->functor(hashset_item->item,functor_data->data);
+	return functor->functor(hashset_item->item, functor->data);
 }
 
+// Hashset implementation *************************************************
 
 hashset_t* hashset_create(coll_hash_f item_hash, coll_hash_f item_rehash, coll_equals_f item_equals) {
 
@@ -202,23 +269,58 @@ void** hashset_to_array(hashset_t* hashset) {
 
 	assert(hashset!=NULL);
 
-	to_array_data_t to_array_data;
+	walk_toarray_data_t to_array_data;
 	to_array_data.array = malloc(sizeof(void*) * hashset_size(hashset));
 	to_array_data.index = 0;
 
-	hshwalk(hashset->hashtable, &to_array, &to_array_data);
+	hshwalk(hashset->hashtable, &walk_toarray, &to_array_data);
 
 	return to_array_data.array;
 }
 
-int hashset_foreach(hashset_t* hashset, coll_functor_f functor, void* context) {
+int hashset_foreach(hashset_t* hashset, coll_functor_t functor){
 
 	assert(hashset!=NULL);
 	assert(functor!=NULL);
 
-	functor_data_t functor_data;
-	functor_data.data = context;
-	functor_data.functor = functor;
+	return hshwalk(hashset->hashtable, &exec_functor, functor);
+}
 
-	return hshwalk(hashset->hashtable, &exec_functor, &functor_data);
+void* hashset_find(hashset_t* hashset, coll_predicate_t predicate) {
+
+	assert(hashset!=NULL);
+	assert(predicate!=NULL);
+
+	walk_find_data_t find_walker_data;
+	find_walker_data.found = NULL;
+	find_walker_data.predicate = predicate;
+
+	hshwalk(hashset->hashtable, &walk_find, &find_walker_data);
+
+	return find_walker_data.found;
+}
+
+hashset_t* hashset_select(hashset_t* hashset, coll_predicate_t predicate) {
+
+	assert(hashset!=NULL);
+	assert(predicate!=NULL);
+
+	walk_select_data_t walker_data;
+	walker_data.target = hashset_create(hashset->item_hash, hashset->item_rehash, hashset->item_equals);
+	walker_data.predicate = predicate;
+
+	hshwalk(hashset->hashtable, &walk_select, &walker_data);
+
+	return walker_data.target;
+}
+
+void hashset_filter(hashset_t* hashset, coll_predicate_t predicate) {
+
+	assert(hashset!=NULL);
+	assert(predicate!=NULL);
+
+	walk_filter_data_t walker_data;
+	walker_data.predicate = predicate;
+
+	hshwalk(hashset->hashtable, walk_filter, &walker_data);
 }
