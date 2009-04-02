@@ -106,26 +106,6 @@ static int walk_find(void* item, void* data, void* xtra) {
 }
 
 typedef struct {
-	coll_predicate_t* predicate;
-} walk_filter_data_t;
-
-static int walk_filter(void* item, void* data, void* xtra) {
-
-	hashset_item_t* hashset_item = (hashset_item_t*)item;
-	walk_filter_data_t* walker_data = (walk_filter_data_t*)data;
-
-	coll_predicate_f predicate = walker_data->predicate->predicate;
-	void* predicate_data = walker_data->predicate->data;
-
-	if(!predicate(hashset_item->item, predicate_data)){
-		hashset_remove(hashset_item->owner, hashset_item->item);
-		// TODO how destroy the removed elements
-	}
-
-	return 0;
-}
-
-typedef struct {
 	hashset_t* target;
 	coll_predicate_t* predicate;
 } walk_select_data_t;
@@ -278,7 +258,7 @@ void** hashset_to_array(hashset_t* hashset) {
 	return to_array_data.array;
 }
 
-int hashset_foreach(hashset_t* hashset, coll_functor_t functor){
+int hashset_foreach(hashset_t* hashset, coll_functor_t* functor){
 
 	assert(hashset!=NULL);
 	assert(functor!=NULL);
@@ -286,7 +266,7 @@ int hashset_foreach(hashset_t* hashset, coll_functor_t functor){
 	return hshwalk(hashset->hashtable, &exec_functor, functor);
 }
 
-void* hashset_find(hashset_t* hashset, coll_predicate_t predicate) {
+void* hashset_find(hashset_t* hashset, coll_predicate_t* predicate) {
 
 	assert(hashset!=NULL);
 	assert(predicate!=NULL);
@@ -300,7 +280,7 @@ void* hashset_find(hashset_t* hashset, coll_predicate_t predicate) {
 	return find_walker_data.found;
 }
 
-hashset_t* hashset_select(hashset_t* hashset, coll_predicate_t predicate) {
+hashset_t* hashset_select(hashset_t* hashset, coll_predicate_t* predicate) {
 
 	assert(hashset!=NULL);
 	assert(predicate!=NULL);
@@ -312,15 +292,4 @@ hashset_t* hashset_select(hashset_t* hashset, coll_predicate_t predicate) {
 	hshwalk(hashset->hashtable, &walk_select, &walker_data);
 
 	return walker_data.target;
-}
-
-void hashset_filter(hashset_t* hashset, coll_predicate_t predicate) {
-
-	assert(hashset!=NULL);
-	assert(predicate!=NULL);
-
-	walk_filter_data_t walker_data;
-	walker_data.predicate = predicate;
-
-	hshwalk(hashset->hashtable, walk_filter, &walker_data);
 }

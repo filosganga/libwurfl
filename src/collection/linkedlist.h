@@ -90,4 +90,10 @@ linkedliststatus_t linkedlist_status(linkedlist_t* list);
 
 void** linkedlist_to_array(linkedlist_t* list);
 
+void* linkedlist_find(linkedlist_t* list, coll_predicate_t* predicate);
+
+int linkedlist_foreach(linkedlist_t* list, coll_functor_t* functor);
+
+hashset_t* linkedlist_select(linkedlist_t* list, coll_predicate_t* predicate);
+
 #endif /*LIST_H_*/

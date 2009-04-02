@@ -18,6 +18,8 @@ struct _hashmap_t {
 	coll_cmp_f key_equals;
 };
 
+// Item functions *********************************************************
+
 static int item_cmp(void* litem, void* ritem) {
 	hashmap_item_t* lhashmap_item = (hashmap_item_t*)litem;
 	hashmap_item_t* rhashmap_item = (hashmap_item_t*)ritem;
@@ -59,6 +61,76 @@ static unsigned long item_rehash(void *item) {
 	unsigned long hash = item_hash(item);
 	return hash * 37;
 }
+
+// Walker functions *******************************************************
+
+typedef struct {
+	void** array;
+	int index;
+} walk_toarray_data_t;
+
+static int walk_toarray(void* item, void* data, void* xtra) {
+
+	hashmap_item_t* hashmap_item = item;
+	walk_toarray_data_t* to_array_data = data;
+
+	to_array_data->array[to_array_data->index] = hashmap_item->item;
+	to_array_data->index++;
+
+	return 0;
+}
+
+typedef struct {
+	void* found;
+	coll_predicate_t* predicate;
+} walk_find_data_t;
+
+static int walk_find(void* item, void* data, void* xtra) {
+
+	hashmap_item_t* hashmap_item = item;
+	walk_find_data_t* walker_data = data;
+
+	coll_predicate_f predicate = walker_data->predicate->predicate;
+	void* predicate_data = walker_data->predicate->data;
+
+	if(predicate(hashmap_item->item, predicate_data)){
+		find_walker_data->found = hashmap_item->item;
+		return 1;
+	}
+
+	return 0;
+}
+
+typedef struct {
+	hashmap_t* target;
+	coll_predicate_t* predicate;
+} walk_select_data_t;
+
+static int walk_select(void* item, void* data, void* xtra) {
+
+	hashmap_item_t* hashmap_item = item;
+	walk_select_data_t* walker_data = (walk_select_data_t*)data;
+
+	coll_predicate_f predicate = walker_data->predicate->predicate;
+	void* predicate_data = walker_data->predicate->data;
+
+	if(predicate(hashmap_item->item, predicate_data)) {
+		hashmap_put(walker_data->target, hashmap_item->key, hashmap_item->item);
+		// FIXME check status
+	}
+
+	return 0;
+}
+
+static int walk_functor(void* item, void* data, void* xtra) {
+
+	hashmap_item_t* hashmap_item = item;
+	coll_functor_t* functor = data;
+
+	return functor->functor(hashmap_item->item, functor->data);
+}
+
+// Interface funcions *****************************************************
 
 hashmap_t* hashmap_create(coll_hash_f key_hash,coll_cmp_f key_equals) {
 
@@ -159,5 +231,40 @@ void hashmap_destroy(hashmap_t* hashmap) {
 	free(hashmap);
 }
 
+void** hashmap_to_array(hashmap_t* hashmap) {
 
+	assert(hashmap!=NULL);
+
+	walk_toarray_data_t to_array_data;
+	to_array_data.array = malloc(sizeof(void*) * hashmap_size(hashmap));
+	to_array_data.index = 0;
+
+	hshwalk(hashmap->hashtable, &walk_toarray, &to_array_data);
+
+	return to_array_data.array;
+}
+
+void* hashmap_find(hashmap_t* hashmap, coll_predicate_t* predicate);
+
+int hashmap_foreach(hashmap_t* hashmap, coll_functor_t* functor) {
+
+	assert(hashmap!=NULL);
+	assert(functor!=NULL);
+
+	return hshwalk(hashmap->hashtable, &walk_functor, functor);
+}
+
+hashset_t* hashmap_select(hashmap_t* hashmap, coll_predicate_t* predicate) {
+
+	assert(hashmap!=NULL);
+	assert(predicate!=NULL);
+
+	walk_select_data_t walker_data;
+	walker_data.target =  hashmap_create(hashmap->key_hash, hashmap->key_equals);
+	walker_data.predicate = predicate;
+
+	hshwalk(hashmap->hashtable, &walk_select, &walker_data);
+
+	return walker_data.target;
+}
 

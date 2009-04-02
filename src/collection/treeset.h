@@ -32,4 +32,12 @@ void treeset_clear(treeset_t* treeset);
 
 void treeset_destroy(treeset_t* treeset);
 
+void** treeset_toarray(treeset_t* treeset);
+
+void* treeset_find(treeset_t* treeset, coll_predicate_t* predicate);
+
+int treeset_foreach(treeset_t* treeset, coll_functor_t* functor);
+
+hashset_t* treeset_select(treeset_t* treeset, coll_predicate_t* predicate);
+
 #endif /* TREESET_H_ */

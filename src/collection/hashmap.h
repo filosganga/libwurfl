@@ -33,4 +33,13 @@ void hashmap_clear(hashmap_t* hashmap);
 
 void hashmap_destroy(hashmap_t* hashmap);
 
+void** hashmap_to_array(hashmap_t* hashmap);
+
+void* hashmap_find(hashmap_t* hashmap, coll_predicate_t* predicate);
+
+int hashmap_foreach(hashmap_t* hashmap, coll_functor_t* functor);
+
+hashset_t* hashmap_select(hashmap_t* hashmap, coll_predicate_t* predicate);
+
+
 #endif /*HASHMAP_H_*/
