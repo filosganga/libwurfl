@@ -7,20 +7,21 @@
 
 #include "devicedef-impl.h"
 
+#include "gnulib/error.h"
+
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
-struct _devicedef_t {
-	char* id;
-	char* user_agent;
-	char* fall_back;
-	int actual_device_root;
-	hashmap_t* capabilities;
-};
+extern int errno;
 
 static devicedef_t* devicedef_alloc() {
 
 	devicedef_t* devicedef = malloc(sizeof(devicedef_t));
+	if(devicedef==NULL) {
+		error(1, errno, "Error allocating devicedef");
+	}
 	return devicedef;
 }
 
@@ -45,18 +46,26 @@ void devicedef_destroy(devicedef_t* devicedef) {
 }
 
 char* devicedef_get_id(const devicedef_t* devicedef) {
+
+	assert(devicedef != NULL);
+
 	return devicedef->id;
 }
 
 char* devicedef_get_user_agent(const devicedef_t* devicedef) {
+
+	assert(devicedef != NULL);
+
 	return devicedef->user_agent;
 }
 
 char* devicedef_get_fall_back(const devicedef_t* devicedef) {
+	assert(devicedef != NULL);
 	return devicedef->fall_back;
 }
 
 int devicedef_is_root(const devicedef_t* devicedef) {
+	assert(devicedef != NULL);
 	return devicedef->actual_device_root;
 }
 
@@ -68,7 +77,7 @@ char* devicedef_get_capability(const devicedef_t* devicedef, const char* name) {
 }
 
 hashmap_t* devicedef_get_capabilities(const devicedef_t* devicedef) {
-
+	// TODO implement!
 }
 
 
@@ -87,9 +96,10 @@ unsigned long devicedef_hash(const void* item) {
 	return string_hash(devicedef->id);
 }
 
-unsigned long devicedef_rehash(const void* item) {
+bool devicedef_eq(const void* litem, const void* ritem) {
 
-	devicedef_t* devicedef = (devicedef_t*)item;
+	devicedef_t* ldevicedef = (devicedef_t*)litem;
+	devicedef_t* rdevicedef = (devicedef_t*)ritem;
 
-	return string_rehash(devicedef->id);
+	return strcmp(ldevicedef->id, rdevicedef->id)==0;
 }

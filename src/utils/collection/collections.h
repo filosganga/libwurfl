@@ -2,6 +2,7 @@
 #define COLLECTIONS_H_
 
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Possible error returns, powers of 2 */
 enum coll_errors {COLL_OK = 0, COLL_NOMEM=2};
@@ -13,7 +14,7 @@ typedef struct {
 	void* data;
 } coll_functor_t;
 
-typedef int (*coll_predicate_f)(const void* item, void* data);
+typedef bool (*coll_predicate_f)(const void* item, void* data);
 
 typedef struct {
 	coll_predicate_f predicate;
@@ -38,12 +39,12 @@ typedef int (*coll_cmp_f)(const void* litem, const void *ritem);
  *
  * @return !=0 if the items are equals, 0 otherwise
  */
-typedef int (*coll_equals_f)(const void* litem, const void *ritem);
+typedef bool (*coll_equals_f)(const void* litem, const void *ritem);
 
 /**
  * Type of function used to calculate hashing of an item.
  */
-typedef unsigned long (*coll_hash_f)(void *item);
+typedef uint32_t (*coll_hash_f)(void *item);
 
 /**
  * Calculate the hash for a string.
@@ -51,28 +52,27 @@ typedef unsigned long (*coll_hash_f)(void *item);
  * @param string The string to calculate hash from.
  * @return hashing code obtained from the given string
  */
-unsigned long string_hash(const void* string);
-
-/**
- * Calculate the hash for a string (rehash).
- *
- * @param string The string to calculate hash from.
- * @return hashing code obtained from the given string
- */
-unsigned long string_rehash(const void* string);
+uint32_t string_hash(const void* string);
 
 int string_cmp(const void* litem, const void *ritem);
 
 bool string_eq(const void *litem, const void *ritem);
 
-bool ref_eq(const void* litem, const void *ritem);
 
-unsigned long int_hash(const void* item);
 
-unsigned long int_rehash(const void* item);
+uint32_t int_hash(const void* item);
 
 int int_cmp(const void* litem, const void *ritem);
 
-int int_eq(const void* litem, const void *ritem);
+bool int_eq(const void* litem, const void *ritem);
+
+
+
+uint32_t ref_hash(const void* item);
+
+int ref_cmp(const void* litem, const void *ritem);
+
+bool ref_eq(const void* litem, const void *ritem);
+
 
 #endif /*COLLECTIONS_H_*/

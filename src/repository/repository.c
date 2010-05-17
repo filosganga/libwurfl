@@ -36,9 +36,9 @@ static int tomap_functor(const void* item, void* data) {
 	return 0;
 }
 
-static void devicedef_getkey(const void* item) {
+static void* devicedef_getkey(const void* item) {
 
-	devicedef_t* devicedef = item;
+	const devicedef_t* devicedef = item;
 
 	return devicedef_get_id(devicedef);
 }
@@ -63,23 +63,31 @@ repository_t* repository_create(resource_t* root, resource_t** patches) {
 	repository_t* repository = alloc_repository();
 
 	resource_data_t* root_data = resource_parse(root);
-	hashset_t* devices = root_data->devices;
+
+	//repository->version = strdup(root_data->version);
+	repository->devices = hashmap_create(&string_hash, &string_hash, &string_eq);
 
 	tomap_data_t tomap_data;
 	tomap_data.key_get = &devicedef_getkey;
-	tomap_data.map = hashmap_create(&string_hash, &string_rehash, &string_cmp);
+	tomap_data.map = repository->devices;
 
 	coll_functor_t tomap;
 	tomap.data = &tomap_data;
 	tomap.functor = &tomap_functor;
 
-	hashset_foreach(devices, &tomap);
-	repository->devices = tomap_data.map;
+	hashset_foreach(root_data->devices, &tomap);
 
-	hashset_destroy(devices);
+	hashset_destroy(root_data->devices);
+	//free(root_data->version);
 	free(root_data);
 
 	return repository;
+}
+
+void repository_destroy(repository_t* repository) {
+
+	// TODO implement
+	hashmap_destroy(repository->devices);
 }
 
 uint32_t repository_size(repository_t* repository) {
@@ -99,7 +107,7 @@ devicedef_t* repository_get_device(repository_t* repository, char* id) {
 
 hashset_t* repository_get_devices(repository_t* repository) {
 
-	hashset_t* devices = hashset_create(&devicedef_hash, &devicedef_rehash, &devicedef_cmp);
+	hashset_t* devices = hashset_create(&devicedef_hash, &devicedef_hash, &devicedef_cmp);
 
 	coll_functor_t functor;
 	functor.data = devices;

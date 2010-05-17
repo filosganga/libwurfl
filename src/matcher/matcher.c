@@ -23,14 +23,21 @@ static bool enumerate(const AlphaChar *key, TrieData key_data, void *user_data) 
 	return false;
 }
 
-static int add_to_trie(const devicedef_t* device, const Trie* trie) {
+static int add_to_trie(const void* item, void* data) {
 
-	assert(device != NULL);
+	devicedef_t* device = (devicedef_t*)item;
+	Trie* trie = (Trie*)data;
+
+	assert(device!=NULL);
 	assert(trie!=NULL);
 
-	if(devicedef_get_user_agent(device)!=NULL) {
-		if(!trie_store(trie, devicedef_get_user_agent(device), NULL)) {
-			fprintf("Device: %s with user-agent: %s not stored\n", devicedef_get_id(device), devicedef_get_user_agent(device));
+	const char* user_agent = devicedef_get_user_agent(device);
+
+//	fprintf(stderr, "Storing device: %s with user-agent: %s\n", devicedef_get_id(device), devicedef_get_user_agent(device));
+
+	if(user_agent!=NULL) {
+		if(!trie_store(trie, devicedef_get_user_agent(device), device)) {
+			fprintf(stderr, "Device: %s with user-agent: %s not stored\n", devicedef_get_id(device), devicedef_get_user_agent(device));
 		}
 	}
 

@@ -14,7 +14,7 @@ struct _resource_t {
 	char* path;
 };
 
-struct _resource_data_t{
+struct _resource_data_t {
 	char* version;
 	hashset_t* devices;
 };

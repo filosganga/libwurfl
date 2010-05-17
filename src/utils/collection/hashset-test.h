@@ -12,4 +12,6 @@ void hashset_create_should_return_not_null();
 
 void hashset_size_should_return_right_size();
 
+void hashset_get_should_return_right_value();
+
 #endif /* HASHSETTEST_H_ */

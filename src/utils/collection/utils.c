@@ -23,19 +23,7 @@ void free_item_nop(void *item) {
 	// Empty
 }
 
-unsigned long string_rehash(const void* item) {
-   unsigned long h;
-   char* string = (char*)item;
-
-   h = 0;
-   while (*string) {
-      h = h * 31UL + (unsigned char) *string++;
-   }
-   return h;
-}
-
-
-unsigned long string_hash(const void* item) {
+uint32_t string_hash(const void* item) {
    unsigned long h;
    char* string = (char*)item;
 
@@ -60,17 +48,22 @@ bool string_eq(const void* litem, const void *ritem) {
 	return strcmp(lstring, rstring)==0;
 }
 
+
+uint32_t ref_hash(const void* ref) {
+	uint32_t* integer = (uint32_t*)ref;
+
+	return hash_int_impl(integer);
+}
+
+int ref_cmp(const void* litem, const void *ritem) {
+	return litem - ritem;
+}
+
 bool ref_eq(const void* litem, const void *ritem) {
 	return litem == ritem;
 }
 
-unsigned long int_hash(const void* item) {
-	uint32_t* integer = (uint32_t*)item;
-
-	return hash_int_impl(*integer);
-}
-
-unsigned long int_rehash(const void* item) {
+uint32_t int_hash(const void* item) {
 	uint32_t* integer = (uint32_t*)item;
 
 	return hash_int_impl(*integer);
@@ -83,7 +76,7 @@ int int_cmp(const void* litem, const void *ritem) {
 	return *lint - *rint;
 }
 
-int int_eq(const void* litem, const void *ritem) {
+bool int_eq(const void* litem, const void *ritem) {
 	uint32_t* lint = (uint32_t*)litem;
 	uint32_t* rint = (uint32_t*)ritem;
 

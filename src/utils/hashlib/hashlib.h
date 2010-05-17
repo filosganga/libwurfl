@@ -141,12 +141,12 @@ hshtbl *hshinit(hshfn hash,
 /* 1------------------1 */
 
 /* destroy the data base. Accepts NULL and does nothing */
-void   hshkill(hshtbl *master);
+void hshkill(hshtbl *master);
 
 /* 1------------------1 */
 
 /* find an existing entry. NULL == notfound */
-void * hshfind(hshtbl *master, void *item);
+void* hshfind(hshtbl *master, void *item);
 
 /* 1------------------1 */
 
@@ -155,12 +155,12 @@ void * hshfind(hshtbl *master, void *item);
 /* (originally created by hshdupfn) is up to the   */
 /* application. It is no longer managed by hashlib */
 /* It will usually be disposable by hshfreefn().   */
-void * hshdelete(hshtbl *master, void *item);
+void* hshdelete(hshtbl *master, void *item);
 
 /* 1------------------1 */
 
 /* insert an entry.  NULL == failure, else item */
-void * hshinsert(hshtbl *master, void *item);
+void* hshinsert(hshtbl *master, void *item);
 
 /* 1------------------1 */
 

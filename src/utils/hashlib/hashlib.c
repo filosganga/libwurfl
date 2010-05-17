@@ -227,7 +227,7 @@ static void * inserted(hshtblptr master, unsigned long h,
    else if (DELETED == hh) {
 	   return NULL;  /* nor if DELETED */
    }
-   else if (master->eq(master->htbl[h], item)) {
+   else if (!master->eq(master->htbl[h], item)) {
       /* not found here */
       return NULL;
    }
@@ -333,22 +333,23 @@ void * hshinsert(hshtblptr master, void *item)
 
 /* Attempt to find item at the hth position in the table */
 /* counting attempts.  Returns 1 if found, else 0        */
-static int found(hshtblptr master, unsigned long h, void *item)
-{
+static bool found(hshtblptr master, unsigned long h, void *item) {
    void *hh;
 
    master->hstatus.probes++;            /* count total probes */
    hh = master->htbl[h];
-   if ((hh) && (hh != DELETED))  /* NEVER cmp against DELETED */
+   if ((hh) && (hh != DELETED)) {
       return master->eq(hh, item);
-   else return 0;
+   }
+   else {
+	   return 0;
+   }
 } /* found */
 
 /* 1------------------1 */
 
 /* Find the current hashtbl index for item, or an empty slot */
-static unsigned long huntup(hshtblptr master, void *item)
-{
+static unsigned long huntup(hshtblptr master, void *item) {
    unsigned long h, h2;
 
    h = master->hash(item) % master->currentsz;
@@ -369,8 +370,7 @@ static unsigned long huntup(hshtblptr master, void *item)
 /* 1------------------1 */
 
 /* find an existing entry. NULL == notfound */
-void * hshfind(hshtblptr master, void *item)
-{
+void* hshfind(hshtblptr master, void *item) {
    unsigned long h;
 
    h = huntup(master, item);
@@ -384,8 +384,7 @@ void * hshfind(hshtblptr master, void *item)
 /* (originally created by hshdupfn) is up to the   */
 /* application. It is no longer managed by hashlib */
 /* It will usually be disposable by hshfreefn().   */
-void * hshdelete(hshtblptr master, void *item)
-{
+void* hshdelete(hshtblptr master, void *item) {
    unsigned long h;
    void         *olditem;
 
@@ -402,8 +401,7 @@ void * hshdelete(hshtblptr master, void *item)
 /* apply exec() to all entries in table. 0 = success */
 /* The order of application is arbitrary.  If exec() */
 /* returns non-zero (error) the walk stops           */
-int    hshwalk(hshtblptr master, hshexecfn exec, void *datum)
-{
+int hshwalk(hshtblptr master, hshexecfn exec, void *datum) {
    unsigned long i;
    int           err;
    void         *xtra;

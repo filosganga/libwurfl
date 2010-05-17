@@ -68,7 +68,11 @@ static char* get_attribute(parse_context_t* context, int nb_attributes,	const xm
         const xmlChar *valueBegin = attributes[index+3];
         const xmlChar *valueEnd = attributes[index+4];
 
-		value = (char*)xmlStrndup(valueBegin, valueEnd - valueBegin);
+        int value_size = valueEnd - valueBegin;
+
+        if(value_size>0) {
+        	value = (char*)xmlStrndup(valueBegin, value_size);
+        }
 	}
 
 	return value;
@@ -85,7 +89,7 @@ static void start_document(void *ctx){
 	context->current_device_id = NULL;
 	context->current_device_user_agent = NULL;
 
-	context->devices = hashset_create(&devicedef_hash, &devicedef_rehash, &devicedef_cmp);
+	context->devices = hashset_create(&devicedef_hash, &devicedef_hash, &devicedef_eq);
 }
 
 static void end_document(void *ctx){
@@ -117,7 +121,7 @@ static void start_device(parse_context_t* context, int nb_attributes, const xmlC
 	char* att_root = get_attribute(context, nb_attributes, attributes, ATTR_ACTUAL_DEVICE_ROOT);
 	context->current_device_actual_device_root = att_root!=NULL && strcmp(att_root, "true") == 0;
 
-	context->capabilities = hashmap_create(&string_hash, &string_rehash, &string_cmp);
+	context->capabilities = hashmap_create(&string_hash, &string_hash, &string_cmp);
 }
 
 static void end_device(parse_context_t* context) {
@@ -127,6 +131,8 @@ static void end_device(parse_context_t* context) {
 			context->current_device_fall_back,
 			context->current_device_actual_device_root,
 			context->capabilities);
+
+	//fprintf(stderr, "Created device: %s\n", devicedef_get_id(devicedef));
 
 	hashset_add(context->devices, devicedef);
 
@@ -208,7 +214,7 @@ resource_data_t* resource_parse(resource_t* resource) {
 	parse_context_t context;
 	memset(&context, 0, sizeof(context));
 
-	context.strings = hashset_create(&string_hash, &string_rehash, &string_cmp);
+	context.strings = hashset_create(&string_hash, &string_hash, &string_cmp);
 
 	xmlSAXHandler saxHandler;
 	memset(&saxHandler, 0, sizeof(saxHandler));
