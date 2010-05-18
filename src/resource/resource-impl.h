@@ -9,6 +9,7 @@
 #define RESOURCEIMPL_H_
 
 #include "resource.h"
+#include "repository/devicedef.h"
 
 struct _resource_t {
 	char* path;
@@ -16,7 +17,7 @@ struct _resource_t {
 
 struct _resource_data_t {
 	char* version;
-	hashset_t* devices;
+	devicedefs_t* devices;
 };
 
 #endif /* RESOURCEIMPL_H_ */

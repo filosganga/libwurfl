@@ -45,7 +45,7 @@ static void* devicedef_getkey(const void* item) {
 
 struct _repository_t {
 	char* version;
-	hashmap_t* devices;
+	devicedefs_t* devices;
 };
 
 static repository_t* alloc_repository(){
@@ -65,20 +65,8 @@ repository_t* repository_create(resource_t* root, resource_t** patches) {
 	resource_data_t* root_data = resource_parse(root);
 
 	//repository->version = strdup(root_data->version);
-	repository->devices = hashmap_create(&string_hash, &string_hash, &string_eq);
+	repository->devices = root_data->devices;
 
-	tomap_data_t tomap_data;
-	tomap_data.key_get = &devicedef_getkey;
-	tomap_data.map = repository->devices;
-
-	coll_functor_t tomap;
-	tomap.data = &tomap_data;
-	tomap.functor = &tomap_functor;
-
-	hashset_foreach(root_data->devices, &tomap);
-
-	hashset_destroy(root_data->devices);
-	//free(root_data->version);
 	free(root_data);
 
 	return repository;

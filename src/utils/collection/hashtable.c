@@ -1,5 +1,6 @@
 
 #include "hashtable-impl.h"
+#include "collections-impl.h"
 
 #include "gnulib/error.h"
 
@@ -277,7 +278,8 @@ bool hashtable_empty(hashtable_t* hashtable) {
 	return hashtable_size(hashtable)==0;
 }
 
-bool hashtable_iterate(hashtable_t* hashtable, coll_functor_t* functor) {
+
+bool hashtable_foreach(hashtable_t* hashtable, coll_functor_t* functor) {
 
 	uint32_t tindex = 0;
 	bool finish = false;
@@ -294,3 +296,13 @@ bool hashtable_iterate(hashtable_t* hashtable, coll_functor_t* functor) {
 	return finish;
 }
 
+void* hashtable_find(hashtable_t* hashtable, coll_predicate_t* predicate, uint32_t nth) {
+
+	coll_finder_data_t coll_finder_data;
+	coll_finder_data.nth = nth;
+	coll_finder_data.predicate = predicate;
+
+	void* found = coll_finder_data.found;
+
+	return found;
+}

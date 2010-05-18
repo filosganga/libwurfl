@@ -46,7 +46,7 @@ typedef bool (*coll_predicate_f)(const void* item, void* data);
  * Predicate type
  */
 typedef struct {
-	coll_predicate_f predicate;
+	coll_predicate_f evaluate;
 	void* data;
 } coll_predicate_t;
 

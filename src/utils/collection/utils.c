@@ -5,7 +5,7 @@
  *      Author: filosganga
  */
 
-#include "collections.h"
+#include "collections-impl.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -33,6 +33,29 @@ void coll_init_allocator_unduper(coll_unduper_t* unduper, allocator_t* allocator
 	unduper->undupe = &allocator_undupe;
 	unduper->xtra = allocator;
 }
+
+
+// Functors ***************************************************************
+
+int coll_finder(const void* item, void* xtra) {
+
+	int found = 0;
+
+	coll_finder_data_t* data = xtra;
+	if(data->predicate->evaluate(item, data->predicate->data)) {
+		if(data->nth==0) {
+			data->found = item;
+			found = 1;
+		}
+		else {
+			data->nth--;
+		}
+	}
+
+	return found;
+}
+
+// Primitive utility functions ********************************************
 
 uint32_t string_hash(const void* item) {
    unsigned long h;

@@ -100,7 +100,7 @@ static int walk_find(void* item, void* data, void* xtra) {
 	hashset_item_t* hashset_item = (hashset_item_t*)item;
 	walk_find_data_t* walker_data = (walk_find_data_t*)data;
 
-	coll_predicate_f predicate = walker_data->predicate->predicate;
+	coll_predicate_f predicate = walker_data->predicate->evaluate;
 	void* predicate_data = walker_data->predicate->data;
 
 	if(predicate(hashset_item->item, predicate_data)){
@@ -121,7 +121,7 @@ static int walk_select(void* item, void* data, void* xtra) {
 	hashset_item_t* hashset_item = (hashset_item_t*)item;
 	walk_select_data_t* walker_data = (walk_select_data_t*)data;
 
-	coll_predicate_f predicate = walker_data->predicate->predicate;
+	coll_predicate_f predicate = walker_data->predicate->evaluate;
 	void* predicate_data = walker_data->predicate->data;
 
 	if(predicate(hashset_item->item, predicate_data)) {

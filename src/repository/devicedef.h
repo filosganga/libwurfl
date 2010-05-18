@@ -33,8 +33,15 @@ int devicedef_cmp(const void* ldevicedef, const void* rdevicedef);
 
 unsigned long devicedef_hash(const void* item);
 
-unsigned long devicedef_rehash(const void* item);
-
 bool devicedef_eq(const void* litem, const void* ritem);
+
+
+typedef struct _devicedefs_t devicedefs_t;
+
+devicedef_t* devicedefs_get(const char* id);
+
+bool devicedefs_contains(const char* id);
+
+int devicedefs_iterate(coll_functor_t* functor);
 
 #endif /* DEVICEDEF_H_ */

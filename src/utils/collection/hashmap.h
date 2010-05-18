@@ -14,33 +14,29 @@
 
 typedef struct _hashmap_t hashmap_t;
 
-hashmap_t* hashmap_create(coll_hash_f key_hash, coll_hash_f key_rehash, coll_equals_f key_equals);
+hashmap_t* hashmap_create(coll_hash_f key_hash, coll_equals_f key_equals, allocator_t* allocator);
 
-void* hashmap_put(hashmap_t* hashmap, void* key, void* item);
+void hashmap_destroy(hashmap_t* hashmap);
 
-void* hashmap_get(hashmap_t* hashmap, void* key);
 
-void* hashmap_remove(hashmap_t* hashmap, void* key);
+void* hashmap_get(hashmap_t* hashmap, const void* key);
+
+void* hashmap_put(hashmap_t* hashmap, const void* key, const void* item);
+
+void* hashmap_remove(hashmap_t* hashmap, const void* key);
+
+void hashmap_clear(hashmap_t* hashmap);
+
 
 uint32_t hashmap_size(hashmap_t* hashmap);
 
 int hashmap_empty(hashmap_t* hashmap);
 
-int hashmap_contain_item(hashmap_t* hashmap, void* item);
+int hashmap_contains_item(hashmap_t* hashmap, const void* item);
 
-int hashmap_contain_key(hashmap_t* hashmap, void* key);
-
-void hashmap_clear(hashmap_t* hashmap);
-
-void hashmap_destroy(hashmap_t* hashmap);
-
-void hashmap_to_array(hashmap_t* hashmap, void** array);
-
-void* hashmap_find(hashmap_t* hashmap, coll_predicate_t* predicate);
 
 int hashmap_foreach(hashmap_t* hashmap, coll_functor_t* functor);
 
-hashmap_t* hashmap_select(hashmap_t* hashmap, coll_predicate_t* predicate);
-
+void* hashmap_find(hashmap_t* map, coll_predicate_t* predicate, uint32_t nth);
 
 #endif /*HASHMAP_H_*/

@@ -5,6 +5,8 @@
  *      Author: filosganga
  */
 #include "resource-impl.h"
+
+#include "commons.h"
 #include "repository/repository.h"
 #include "repository/devicedef-impl.h"
 #include "repository/hierarchy-impl.h"
@@ -12,6 +14,7 @@
 #include "utils/collection/collections.h"
 #include "utils/collection/hashmap.h"
 #include "utils/collection/hashset.h"
+#include "utils/collection/hashtable.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +42,8 @@
 #define ATTR_FALL_BACK BAD_CAST("fall_back")
 #define ATTR_ACTUAL_DEVICE_ROOT BAD_CAST("actual_device_root")
 
+extern allocator_t* main_allocator;
+
 typedef struct {
 	uint32_t size;
 
@@ -47,7 +52,7 @@ typedef struct {
 	char* current_device_user_agent;
 	char* current_device_fall_back;
 
-	hashset_t* devices;
+	hashmap_t* devices;
 	hashmap_t* capabilities;
 
 	hashset_t* strings;
@@ -88,8 +93,6 @@ static void start_document(void *ctx){
 	context->current_device_fall_back = NULL;
 	context->current_device_id = NULL;
 	context->current_device_user_agent = NULL;
-
-	context->devices = hashset_create(&devicedef_hash, &devicedef_hash, &devicedef_eq);
 }
 
 static void end_document(void *ctx){
@@ -132,10 +135,9 @@ static void end_device(parse_context_t* context) {
 			context->current_device_actual_device_root,
 			context->capabilities);
 
-	//fprintf(stderr, "Created device: %s\n", devicedef_get_id(devicedef));
+	hashmap_put(context->devices, devicedef_get_id(devicedef), devicedef);
 
-	hashset_add(context->devices, devicedef);
-
+	// reset context
 	context->current_device_id = NULL;
 	context->current_device_user_agent = NULL;
 	context->current_device_fall_back = NULL;
@@ -211,11 +213,6 @@ static void nop(){
 
 resource_data_t* resource_parse(resource_t* resource) {
 
-	parse_context_t context;
-	memset(&context, 0, sizeof(context));
-
-	context.strings = hashset_create(&string_hash, &string_hash, &string_cmp);
-
 	xmlSAXHandler saxHandler;
 	memset(&saxHandler, 0, sizeof(saxHandler));
 
@@ -233,12 +230,28 @@ resource_data_t* resource_parse(resource_t* resource) {
 	saxHandler.fatalError = &fatal;
 	saxHandler.warning = &warn;
 
+	// Creating context
+	parse_context_t context;
+	memset(&context, 0, sizeof(context));
+
+	hashtable_options_t strings_ops;
+	hashtable_init_options(&strings_ops);
+	strings_ops.eq_fn = &string_eq;
+	strings_ops.hash_fn = &string_hash;
+	context.strings = hashtable_create(strings_ops, main_allocator);
+
+	context.devices = hashmap_create(&string_hash, &string_eq, main_allocator);
+
 	int sax_error = xmlSAXUserParseFile(&saxHandler, &context, resource->path);
 
-	hashset_destroy(context.strings);
+	if(context.size != hashmap_size(context.devices)) {
+		error(-1, 0, "Error parsing file %s: Bad number of devices", resource->path);
+	}
+
+	hashtable_destroy(context.strings, NULL);
 
 	resource_data_t* resource_data = malloc(sizeof(resource_data_t));
-	resource_data->devices = context.devices;
+	resource_data->devices = devicedefs_create_frommap(context.devices);
 
 	xmlCleanupParser();
 

@@ -1,6 +1,8 @@
 #include "hashmap.h"
-#include "utils/hashlib/hashlib.h"
+
+#include "hashtable-impl.h"
 #include "gnulib/error.h"
+#include "utils/memory/allocator.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -12,6 +14,8 @@
 
 extern int errno;
 
+extern allocator_t* main_allocator;
+
 typedef struct _hashmap_item_t {
 	void *key;
 	void* item;
@@ -19,9 +23,8 @@ typedef struct _hashmap_item_t {
 } hashmap_item_t;
 
 struct _hashmap_t {
-	hshtbl* hashtable;
+	hashtable_t* hashtable;
 	coll_hash_f key_hash;
-	coll_hash_f key_rehash;
 	coll_equals_f key_equals;
 };
 
@@ -43,175 +46,110 @@ static hashmap_item_t* item_create(hashmap_t* hashmap, void* key, void* item) {
 	return hashmap_item;
 }
 
-static void* item_clone(void *item) {
-
-	return item;
-}
-
-static void item_free(void *item) {
-
-	free(item);
-}
-
-static unsigned long item_hash(void *item) {
-	hashmap_item_t* hashmap_item = item;
+static uint32_t item_hash(const void *item) {
+	const hashmap_item_t* hashmap_item = item;
 	hashmap_t* map = hashmap_item->owner;
 
 	return map->key_hash(hashmap_item->key);
 }
 
-static unsigned long item_rehash(void *item) {
-
-	hashmap_item_t* hashmap_item = item;
-	hashmap_t* map = hashmap_item->owner;
-
-	return map->key_rehash(hashmap_item->key);
-}
-
-// Walker functions *******************************************************
-
 typedef struct {
-	void** array;
-	int index;
-} walk_toarray_data_t;
+	coll_predicate_t* key_predicate;
+} evaluate_map_item_data_t;
 
-static int walk_toarray(void* item, void* data, void* xtra) {
+static bool evaluate_map_item(const void* item, void* data) {
+	const hashmap_item_t* hashmap_item = item;
+	evaluate_map_item_data_t* ev_data = data;
 
-	hashmap_item_t* hashmap_item = item;
-	walk_toarray_data_t* to_array_data = data;
-
-	to_array_data->array[to_array_data->index] = hashmap_item->item;
-	to_array_data->index++;
-
-	return 0;
+	return ev_data->key_predicate->evaluate(hashmap_item->key, ev_data->key_predicate->data);
 }
 
-typedef struct {
-	void* found;
-	coll_predicate_t* predicate;
-} walk_find_data_t;
-
-static int walk_find(void* item, void* data, void* xtra) {
-
-	hashmap_item_t* hashmap_item = item;
-	walk_find_data_t* walker_data = data;
-
-	coll_predicate_f predicate = walker_data->predicate->predicate;
-	void* predicate_data = walker_data->predicate->data;
-
-	if(predicate(hashmap_item->item, predicate_data)){
-		walker_data->found = hashmap_item->item;
-		return 1;
-	}
-
-	return 0;
-}
-
-typedef struct {
-	hashmap_t* target;
-	coll_predicate_t* predicate;
-} walk_select_data_t;
-
-static int walk_select(void* item, void* data, void* xtra) {
-
-	hashmap_item_t* hashmap_item = item;
-	walk_select_data_t* walker_data = (walk_select_data_t*)data;
-
-	coll_predicate_f predicate = walker_data->predicate->predicate;
-	void* predicate_data = walker_data->predicate->data;
-
-	if(predicate(hashmap_item->item, predicate_data)) {
-		hashmap_put(walker_data->target, hashmap_item->key, hashmap_item->item);
-		// FIXME check status
-	}
-
-	return 0;
-}
-
-static int walk_functor(void* item, void* data, void* xtra) {
-
-	hashmap_item_t* hashmap_item = item;
-	coll_functor_t* functor = data;
-
-	return functor->functor(hashmap_item->item, functor->data);
-}
 
 // Interface funcions *****************************************************
 
-hashmap_t* hashmap_create(coll_hash_f key_hash, coll_hash_f key_rehash, coll_equals_f key_equals) {
+hashmap_t* hashmap_create(coll_hash_f key_hash, coll_equals_f key_equals, allocator_t* allocator) {
 
-	hashmap_t* map = malloc(sizeof(hashmap_t));
-	if(map==NULL) {
-		error(1, errno, "Error allocating map");
+	if(allocator==NULL) {
+		allocator = main_allocator;
 	}
 
+	hashmap_t* map = allocator_alloc(allocator, sizeof(hashmap_t));
+
 	map->key_hash = key_hash;
-	map->key_rehash = key_rehash;
 	map->key_equals = key_equals;
-	map->hashtable = hshinit(&item_hash, &item_rehash, &item_eq, &item_clone, &item_free, 0);
+
+
+	hashtable_options_t table_opts;
+	table_opts.eq_fn = &item_eq;
+	table_opts.hash_fn = &item_hash;
+
+	map->hashtable = hashtable_create(table_opts, allocator);
 
 	return map;
 }
 
 
-void* hashmap_put(hashmap_t* hashmap, void* key, void* item) {
+void* hashmap_put(hashmap_t* map, const void* key, const void* item) {
 
 	// item can be NULL
-	assert(hashmap!=NULL);
+	assert(map!=NULL);
 	assert(key!=NULL);
 
-	hashmap_item_t* hashmap_item = item_create(hashmap, key, item);
-	hshinsert(hashmap->hashtable, hashmap_item);
+	hashmap_item_t* hashmap_item = item_create(map, key, item);
+	hashmap_item_t* replaced = hashtable_add(map->hashtable, hashmap_item);
 
-	return item;
+	return replaced;
 }
 
-void* hashmap_get(hashmap_t* hashmap, void* key) {
+void* hashmap_get(hashmap_t* map, const void* key) {
 
-	assert(hashmap!=NULL);
+	assert(map!=NULL);
 	assert(key!=NULL);
 
 	void* item = NULL;
 
-	hashmap_item_t hashMapItem;
-	hashMapItem.key = key;
-	hashMapItem.owner = hashmap;
+	hashmap_item_t map_item;
+	map_item.key = key;
+	map_item.owner = map;
 
-	hashmap_item_t* found = hshfind(hashmap->hashtable, &hashMapItem);
+	hashmap_item_t* found = hashtable_get(map->hashtable, &map_item);
 
 	if(found){
 		item = found->item;
+		// FIXME use allocator
 		free(found);
 	}
 
 	return item;
 }
 
-void* hashmap_remove(hashmap_t* hashmap, void* key) {
+void* hashmap_remove(hashmap_t* map, const void* key) {
 
-	assert(hashmap!=NULL);
+	assert(map!=NULL);
 	assert(key!=NULL);
 
 	void* item = NULL;
 
 	hashmap_item_t hashMapItem;
 	hashMapItem.key = key;
-	hashMapItem.owner = hashmap;
+	hashMapItem.owner = map;
 
-	hashmap_item_t* removed = hshdelete(hashmap->hashtable, &hashMapItem);
+	hashmap_item_t* removed = hashtable_remove(map->hashtable, &hashMapItem);
 
 	if(removed){
 		item = removed->item;
+		// FIXME use allocator
+		free(removed);
 	}
 
 	return item;
 }
 
-uint32_t hashmap_size(hashmap_t* hashmap){
+uint32_t hashmap_size(hashmap_t* map){
 
-	assert(hashmap!=NULL);
+	assert(map!=NULL);
 
-	return (uint32_t)hshstatus(hashmap->hashtable).hentries;
+	return hashtable_size(map->hashtable);
 }
 
 int hashmap_empty(hashmap_t* hashmap) {
@@ -221,50 +159,51 @@ int hashmap_empty(hashmap_t* hashmap) {
 	return hashmap_size(hashmap)==0;
 }
 
-int hashmap_contain_key(hashmap_t* hashmap, void* key) {
+int hashmap_contains(hashmap_t* hashmap, const void* key) {
 
 	assert(hashmap!=NULL);
 
 	return hashmap_get(hashmap, key) != NULL;
 }
 
-void hashmap_clear(hashmap_t* hashmap) {
+void hashmap_clear(hashmap_t* map) {
 
-	assert(hashmap!=NULL);
+	assert(map!=NULL);
 
-	hshkill(hashmap->hashtable);
-	hashmap->hashtable = hshinit(&item_hash, &item_rehash, &item_eq, &item_clone, &item_free, 0);
+	hashtable_clear(map->hashtable, NULL);
 }
 
-void hashmap_destroy(hashmap_t* hashmap) {
+void hashmap_destroy(hashmap_t* map) {
 
-	hshkill(hashmap->hashtable);
-	free(hashmap);
+	assert(map!=NULL);
+
+	hashtable_destroy(map->hashtable, NULL);
+
+	// FIXME use allocator
+	free(map);
 }
 
-void hashmap_to_array(hashmap_t* hashmap, void** array) {
+void* hashmap_find(hashmap_t* map, coll_predicate_t* predicate, uint32_t nth) {
 
-	assert(hashmap!=NULL);
-
-	walk_toarray_data_t to_array_data;
-	to_array_data.array = array;
-	to_array_data.index = 0;
-
-	hshwalk(hashmap->hashtable, &walk_toarray, &to_array_data);
-}
-
-void* hashmap_find(hashmap_t* hashmap, coll_predicate_t* predicate) {
-
-	assert(hashmap!=NULL);
+	assert(map!=NULL);
 	assert(predicate!=NULL);
+	assert(nth>=0);
 
-	walk_find_data_t walker_data;
-	walker_data.found=NULL;
-	walker_data.predicate = predicate;
+	void* found = NULL;
 
-	hshwalk(hashmap->hashtable, &walk_find, &walker_data);
+	evaluate_map_item_data_t ev_map_item_data;
+	ev_map_item_data.key_predicate = predicate;
 
-	return walker_data.found;
+	coll_predicate_t map_predicate;
+	map_predicate.evaluate = &evaluate_map_item;
+	map_predicate.data = &ev_map_item_data;
+
+	hashmap_item_t* map_item = hashtable_find(map->hashtable, &map_predicate, nth);
+	if(map_item != NULL) {
+		found = map_item->item;
+	}
+
+	return found;
 }
 
 int hashmap_foreach(hashmap_t* hashmap, coll_functor_t* functor) {
@@ -272,20 +211,7 @@ int hashmap_foreach(hashmap_t* hashmap, coll_functor_t* functor) {
 	assert(hashmap!=NULL);
 	assert(functor!=NULL);
 
-	return hshwalk(hashmap->hashtable, &walk_functor, functor);
-}
-
-hashmap_t* hashmap_select(hashmap_t* hashmap, coll_predicate_t* predicate) {
-
-	assert(hashmap!=NULL);
-	assert(predicate!=NULL);
-
-	walk_select_data_t walker_data;
-	walker_data.target =  hashmap_create(hashmap->key_hash, hashmap->key_rehash, hashmap->key_equals);
-	walker_data.predicate = predicate;
-
-	hshwalk(hashmap->hashtable, &walk_select, &walker_data);
-
-	return walker_data.target;
+	// TODO functor
+	return 1;
 }
 

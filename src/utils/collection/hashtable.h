@@ -46,4 +46,8 @@ uint32_t hashtable_size(hashtable_t* hashtable);
 
 bool hashtable_empty(hashtable_t* hashtable);
 
+bool hashtable_foreach(hashtable_t* hashtable, coll_functor_t* functor);
+
+void* hashtable_find(hashtable_t* hashtable, coll_predicate_t* predicate, uint32_t nth);
+
 #endif /* HASHTABLE_H_ */
