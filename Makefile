@@ -9,7 +9,7 @@ vpath %.o $(srcdir)
 CDEBUG = -g
 DEFS = -D_GNU_SOURCE
 INCLUDES = -I. -I$(srcdir) -I/usr/include/libxml2
-LIBS = -lm -lcunit -lxml2 -ldatrie -lz
+LIBS = -lm -lcunit -lxml2 -ldatrie -lz -lefence
 
 CFLAGS = -O0 -std=c99 $(CDEBUG) $(INCLUDES) $(DEFS)
 LDFLAGS = -g

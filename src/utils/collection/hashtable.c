@@ -3,28 +3,46 @@
 
 #include "gnulib/error.h"
 
+#include <stdio.h>
 #include <assert.h>
 #include <math.h>
 #include <limits.h>
 #include <errno.h>
+#include <string.h>
 
 extern int errno;
 
-static void resize(hashtable_t* hashtable, int new_capacity) {
+static void hashtable_resize(hashtable_t* hashtable, int new_capacity) {
 
     if (hashtable->table_size == MAXIMUM_CAPACITY) {
     	hashtable->threshold = UINT32_MAX;
         return;
     }
 
-    hashtable->table = realloc(hashtable->table, new_capacity);
-    if(hashtable->table==NULL) {
+    uint32_t old_capacity = hashtable->table_size;
+    // FIXME use allocator
+    hashtable_entry_t** new_table = allocator_alloc(hashtable->allocator, sizeof(hashtable_entry_t*) * new_capacity);
+    if(new_table!=NULL) {
+
+    	// copy the array
+    	memmove(new_table, hashtable->table, hashtable->table_size);
+
+        // Reset new allocated table
+        for(int i=old_capacity; i<new_capacity; i++) {
+        	*(new_table + i) = NULL;
+        }
+
+        hashtable->table = new_table;
+        hashtable->table_size = new_capacity;
+
+        hashtable->threshold = new_capacity * hashtable->lfactor;
+        fprintf(stderr, "hashtable resized to: %d\n", new_capacity);
+    }
+    else {
+    	// TODO errore
     	error(-1, errno, "Errore resize hashtable");
     }
 
-    hashtable->table_size = new_capacity;
-
-    hashtable->threshold = new_capacity * hashtable->lfactor;
 }
 
 /**
@@ -34,7 +52,7 @@ static void resize(hashtable_t* hashtable, int new_capacity) {
  * otherwise encounter collisions for hashCodes that do not differ
  * in lower bits. Note: Null keys always map to hash 0, thus index 0.
  */
-static int reinforce_hash(const int weak_hash) {
+static int hashtable_reinforce_hash(const int weak_hash) {
 
 	uint32_t hash = weak_hash;
 
@@ -45,11 +63,11 @@ static int reinforce_hash(const int weak_hash) {
 	return hash ^ (hash >> 7) ^ (hash >> 4);
 }
 
-uint32_t index(const int32_t hash, uint32_t length) {
+uint32_t hashtable_index(const int32_t hash, uint32_t length) {
     return hash & (length-1);
 }
 
-hashtable_entry_t* find(hashtable_t* hashtable, uint32_t table_index, const void* item) {
+hashtable_entry_t* hashtable_find_entry(hashtable_t* hashtable, uint32_t table_index, const void* item) {
 
 	hashtable_entry_t* entry = *(hashtable->table + table_index);
 	while(entry!=NULL && !hashtable->eq_fn(entry->item, item)) {
@@ -59,27 +77,31 @@ hashtable_entry_t* find(hashtable_t* hashtable, uint32_t table_index, const void
 	return entry;
 }
 
-hashtable_entry_t* add(hashtable_t* hashtable, uint32_t table_index, const void* item) {
+hashtable_entry_t* hashtable_add_entry(hashtable_t* hashtable, uint32_t table_index, const void* item) {
 
-	hashtable_entry_t* entry = malloc(sizeof(hashtable_entry_t));
-	if(entry==NULL) {
-		// TODO Error
-	}
+	hashtable_entry_t* bucket_head = *(hashtable->table+table_index);
 
+	// Create entry
+	hashtable_entry_t* entry = allocator_alloc(hashtable->allocator, sizeof(hashtable_entry_t));
 	entry->hash = hashtable->hash_fn(item);
 	entry->item = item;
-	entry->next = *(hashtable->table+table_index);
+	entry->next = bucket_head;
 
 	*(hashtable->table+table_index) = entry;
+	hashtable->size++;
 
-    if (hashtable->size++ >= hashtable->threshold) {
-    	resize(hashtable, 2 * hashtable->table_size);
-    }
+	// Bucket added
+	if(bucket_head==NULL) {
+		hashtable->table_used++;
+		if (hashtable->table_used >= hashtable->threshold) {
+			hashtable_resize(hashtable, 2 * hashtable->table_size);
+		}
+	}
 
     return entry;
 }
 
-hashtable_entry_t* remove(hashtable_t* hashtable, uint32_t table_index, const void* item) {
+hashtable_entry_t* hashtable_remove_entry(hashtable_t* hashtable, uint32_t table_index, const void* item) {
 
     hashtable_entry_t *entry = *(hashtable->table + table_index);
     hashtable_entry_t *prev = NULL;
@@ -103,69 +125,81 @@ hashtable_entry_t* remove(hashtable_t* hashtable, uint32_t table_index, const vo
     return entry;
 }
 
-hashtable_t* hashtable_create(coll_hash_f hash_fn, coll_equals_f eq_fn, uint32_t initial_capacity, float load_factor) {
+void hashtable_init_options(hashtable_options_t* options) {
 
-	assert(initial_capacity > 0);
-	assert(load_factor > 0);
-	assert(!isnanf(load_factor));
+	options->initial_capacity = HASHTABLE_DEFAULT_INIT_CAPACITY;
+	options->load_factor = HASHTABLE_DEFAULT_LFACTOR;
 
+	options->eq_fn = &ref_eq;
+	options->hash_fn = &ref_hash;
+}
+
+hashtable_t* hashtable_create(hashtable_options_t options, allocator_t* allocator) {
+
+	assert(options.initial_capacity > 0);
+	assert(options.load_factor > 0);
+	assert(!isnanf(options.load_factor));
+
+	uint32_t initial_capacity = options.initial_capacity;
 	if (initial_capacity > MAXIMUM_CAPACITY) {
 		initial_capacity = MAXIMUM_CAPACITY;
 	}
 
 	// Find a power of 2 >= initialCapacity
-	int capacity = 1;
+	uint32_t capacity = 1;
 	while (capacity < initial_capacity) {
 		capacity <<= 1;
 	}
 
-	hashtable_t* hashtable = malloc(sizeof(hashtable_t));
+	hashtable_t* hashtable = allocator_alloc(allocator, sizeof(hashtable_t));
 	if(hashtable==NULL) {
-		// TODO error
+		error(-1, errno, "Error allocating hashtable");
 	}
 
-	hashtable->table = malloc(sizeof(hashtable_entry_t*) * capacity);
-	if(hashtable->table==NULL) {
-		free(hashtable);
+	hashtable_entry_t** table = allocator_alloc(allocator, sizeof(hashtable_entry_t*) * capacity);
+	if(table==NULL) {
+		allocator_free(allocator, hashtable);
+		error(-1, errno, "Error allocating hashtable table");
 		// TODO error
 	}
-	hashtable->table_size = capacity;
+	else {
+		// Reset table
+		for(int i=0; i<capacity; i++) {
+			*(table+i)=NULL;
+		}
 
-	hashtable->hash_fn = hash_fn;
-	hashtable->eq_fn = eq_fn;
+		hashtable->table = table;
+		hashtable->table_size = capacity;
+		hashtable->table_used = 0;
+		hashtable->size = 0;
+	}
 
-	hashtable->lfactor = load_factor;
-	hashtable->threshold = capacity * load_factor;
-	hashtable->size = 0;
+	hashtable->hash_fn = options.hash_fn;
+	hashtable->eq_fn = options.eq_fn;
+
+	hashtable->lfactor = options.load_factor;
+	hashtable->threshold = capacity * options.load_factor;
+
+	hashtable->allocator = allocator;
 
 	return hashtable;
 }
 
-void hashtable_destroy(hashtable_t* hashtable) {
+void hashtable_destroy(hashtable_t* hashtable, coll_unduper_t* unduper) {
 
-	uint32_t tindex = 0;
-	for(tindex=0; tindex<hashtable->table_size; tindex++) {
+	hashtable_clear(hashtable, unduper);
 
-		hashtable_entry_t* entry = *(hashtable->table+tindex);
-		while(entry!=NULL) {
-			hashtable_entry_t* next = entry->next;
-			free(entry);
-			entry = next;
-			*(hashtable->table+tindex)=entry;
-		}
-	}
-
-	free(hashtable->table);
-	free(hashtable);
+	allocator_free(hashtable->allocator, hashtable->table);
+	allocator_free(hashtable->allocator, hashtable);
 }
 
 void* hashtable_get(hashtable_t* hashtable, const void* item) {
 
-	int hashcode = reinforce_hash(hashtable->hash_fn(item));
-	uint32_t table_index = index(hashcode, hashtable->table_size);
+	int hashcode = hashtable_reinforce_hash(hashtable->hash_fn(item));
+	uint32_t table_index = hashtable_index(hashcode, hashtable->table_size);
 
 
-	hashtable_entry_t* entry = find(hashtable, table_index, item);
+	hashtable_entry_t* entry = hashtable_find_entry(hashtable, table_index, item);
 
 	return entry!=NULL?entry->item:NULL;
 }
@@ -174,18 +208,18 @@ void* hashtable_add(hashtable_t* hashtable, const void* item) {
 
 	void* old_item = NULL;
 
-	int hashcode = reinforce_hash(hashtable->hash_fn(item));
-	uint32_t table_index = index(hashcode, hashtable->table_size);
+	int hashcode = hashtable_reinforce_hash(hashtable->hash_fn(item));
+	uint32_t table_index = hashtable_index(hashcode, hashtable->table_size);
 
 
-	hashtable_entry_t* entry = find(hashtable, table_index, item);
+	hashtable_entry_t* entry = hashtable_find_entry(hashtable, table_index, item);
 
 	if(entry!=NULL) {
 		old_item = entry->item;
 		entry->item = item;
 	}
 	else {
-		add(hashtable, table_index, item);
+		hashtable_add_entry(hashtable, table_index, item);
 	}
 
 	return old_item;
@@ -195,10 +229,10 @@ void* hashtable_remove(hashtable_t* hashtable, const void* item) {
 
 	void* removed = NULL;
 
-	int hashcode = reinforce_hash(hashtable->hash_fn(item));
-	uint32_t table_index = index(hashcode, hashtable->table_size);
+	int hashcode = hashtable_reinforce_hash(hashtable->hash_fn(item));
+	uint32_t table_index = hashtable_index(hashcode, hashtable->table_size);
 
-	hashtable_entry_t* entry = remove(hashtable, table_index, item);
+	hashtable_entry_t* entry = hashtable_remove_entry(hashtable, table_index, item);
 
 	if(entry!=NULL) {
 		removed = entry->item;
@@ -206,6 +240,29 @@ void* hashtable_remove(hashtable_t* hashtable, const void* item) {
 	}
 
     return removed;
+}
+
+void hashtable_clear(hashtable_t* hashtable, coll_unduper_t* unduper) {
+
+	uint32_t tindex = 0;
+	for(tindex=0; tindex<hashtable->table_size; tindex++) {
+
+		hashtable_entry_t* entry = *(hashtable->table+tindex);
+		while(entry!=NULL) {
+			hashtable_entry_t* next = entry->next;
+			*(hashtable->table+tindex)=next;
+
+			if(unduper!=NULL) {
+				unduper->undupe(entry->item, unduper->xtra);
+			}
+
+			allocator_free(hashtable->allocator, entry);
+			entry = next;
+		}
+	}
+
+
+
 }
 
 bool hashtable_contains(hashtable_t* hashtable, void* item) {

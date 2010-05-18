@@ -107,7 +107,7 @@ typedef struct hshtag {
 static int primetbl[] = {45, 45, 41, 45, 45, 45, 45, 49,
                          57, 49, 41, 45, 59, 55, 57, 61,
                          63, 61, 45, 79, 0};
-/* So the prime of interest, vs index i into above table,   */
+/* So the prime of interest, vs hashtable_index i into above table,   */
 /* is    ( 2**(FIRSTN + i) ) - primetbl[i]                  */
 /* The above table suffices for about 48,000,000 entries.   */
 
@@ -348,7 +348,7 @@ static bool found(hshtblptr master, unsigned long h, void *item) {
 
 /* 1------------------1 */
 
-/* Find the current hashtbl index for item, or an empty slot */
+/* Find the current hashtbl hashtable_index for item, or an empty slot */
 static unsigned long huntup(hshtblptr master, void *item) {
    unsigned long h, h2;
 

@@ -15,12 +15,23 @@
 
 static uint32_t hash_int_impl(uint32_t a);
 
-void* clone_item_nop(const void *item) {
-	return item;
+static void nop_undupe(void* item, const void* xtra) {
+	// Empty
 }
 
-void free_item_nop(void *item) {
-	// Empty
+static void allocator_undupe(void* item, const void* xtra) {
+	const allocator_t* allocator = xtra;
+	allocator_free(allocator, item);
+}
+
+void coll_init_nop_unduper(coll_unduper_t* unduper) {
+	unduper->undupe = &nop_undupe;
+	unduper->xtra = NULL;
+}
+
+void coll_init_allocator_unduper(coll_unduper_t* unduper, allocator_t* allocator) {
+	unduper->undupe = &allocator_undupe;
+	unduper->xtra = allocator;
 }
 
 uint32_t string_hash(const void* item) {

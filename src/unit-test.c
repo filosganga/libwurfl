@@ -50,7 +50,8 @@ int main(int argc, char **argv) {
 	CU_add_test(suite, "hashtable_add_should_increase_size", &hashtable_add_should_increase_size);
 	CU_add_test(suite, "hashtable_remove_should_decrease_size", &hashtable_remove_should_decrease_size);
 	CU_add_test(suite, "hashtable_add_should_return_relaced", &hashtable_add_should_return_relaced);
-	CU_add_test(suite, "hashtable_add_with_same_hash_should_increase_size", &hashtable_add_with_same_hash_should_increase_size);
+	CU_add_test(suite, "hashtable_add_with_different_hash_should_increase_size", &hashtable_add_with_different_hash_should_increase_size);
+	CU_add_test(suite, "hashtable_add_with_same_hash_should_not_increase_size", &hashtable_add_with_same_hash_should_not_increase_size);
 
 	/*
 	CU_add_test(suite, "hashset_create_should_return_not_null", &hashset_create_should_return_not_null);

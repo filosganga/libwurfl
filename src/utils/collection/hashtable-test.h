@@ -16,7 +16,9 @@ void hashtable_remove_should_decrease_size();
 
 void hashtable_add_should_return_relaced();
 
-void hashtable_add_with_same_hash_should_increase_size();
+void hashtable_add_with_same_hash_should_not_increase_size();
+
+void hashtable_add_with_different_hash_should_increase_size();
 
 
 #endif /* HASHTABLETEST_H_ */
