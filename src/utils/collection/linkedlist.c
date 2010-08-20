@@ -1,32 +1,32 @@
-#include "linkedlist_impl.h"
+#include "linkedlist-impl.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 
-static linkedlist_t* list_alloc(allocator_t* allocator) {
+static linkedlist_t* list_alloc() {
 
 	linkedlist_t* list = NULL;
 
-	list = allocator_alloc(allocator, sizeof(linkedlist_t));
+	list = malloc(sizeof(linkedlist_t));
 
 	return list;
 }
 
 void linkedlist_free(linkedlist_t* list) {
 
-	allocator_free(list->allocator, list);
+	free(list);
 }
 
 void linkedlist_node_destroy(linkedlist_t* list, linkedlist_node_t *to_remove) {
 
-	allocator_free(list->allocator, to_remove);
+	free(to_remove);
 }
 
 linkedlist_node_t* linkedlist_node_create(linkedlist_t* list, const void *item) {
 
 	linkedlist_node_t* to_add = NULL;
 
-	to_add = allocator_alloc(list->allocator, sizeof(linkedlist_node_t));
+	to_add = malloc(sizeof(linkedlist_node_t));
 	to_add->item = item;
 
 	return to_add;
@@ -212,13 +212,11 @@ void* linkedlist_get(linkedlist_t* list, uint32_t index) {
 
 // Modify list functions **************************************************
 
-linkedlist_t* linkedlist_create(allocator_t* allocator, coll_equals_f item_equals) {
+linkedlist_t* linkedlist_create(coll_equals_f item_equals) {
 
 	assert(item_equals != NULL);
 
-	linkedlist_t* list = list_alloc(allocator);
-
-	list->allocator = allocator;
+	linkedlist_t* list = list_alloc();
 
 	list->start = NULL;
 	list->end = NULL;

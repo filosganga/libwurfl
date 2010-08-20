@@ -14,7 +14,12 @@
 
 typedef struct _hashmap_t hashmap_t;
 
-hashmap_t* hashmap_create(coll_hash_f key_hash, coll_equals_f key_equals, allocator_t* allocator);
+typedef struct {
+	uint32_t initial_capacity;
+	float load_factor;
+} hashmap_options_t;
+
+hashmap_t* hashmap_create(coll_equals_f key_equals, coll_hash_f key_hash, hashmap_options_t* options);
 
 void hashmap_destroy(hashmap_t* hashmap);
 

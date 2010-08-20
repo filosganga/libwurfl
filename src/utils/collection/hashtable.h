@@ -17,16 +17,12 @@
 typedef struct _hashtable_t hashtable_t;
 
 typedef struct {
-	coll_hash_f hash_fn;
-	coll_equals_f eq_fn;
 	uint32_t initial_capacity;
 	float load_factor;
 } hashtable_options_t;
 
 
-void hashtable_init_options(hashtable_options_t* options);
-
-hashtable_t* hashtable_create(hashtable_options_t options, allocator_t* allocator);
+hashtable_t* hashtable_create(coll_equals_f eq_fn, coll_hash_f hash_fn, hashtable_options_t* options);
 
 void hashtable_destroy(hashtable_t* hashtable, coll_unduper_t* unduper);
 

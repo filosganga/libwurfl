@@ -8,7 +8,7 @@
 #ifndef REPOSITORY_H_
 #define REPOSITORY_H_
 
-#include "resource/resource.h"
+#include "resource.h"
 #include "devicedef.h"
 #include "hierarchy.h"
 
@@ -19,15 +19,14 @@
 
 typedef struct _repository_t repository_t;
 
-repository_t* repository_create(resource_t* root, resource_t** patches);
+repository_t* repository_create(const char* root, const char** patches);
 
-void destroy_repository(repository_t* repository);
+void repository_destroy(repository_t* repository);
 
-devicedef_t* repository_get_device(repository_t* repository, char* id);
-
-hashset_t* repository_get_devices(repository_t* repository);
+devicedef_t* repository_get_device(repository_t* repository, const char* id);
 
 uint32_t repository_size(repository_t* repository);
 
+int repository_foreach(repository_t* repository, coll_functor_t* functor);
 
 #endif /* REPOSITORY_H_ */

@@ -25,13 +25,20 @@ static devicedef_t* devicedef_alloc() {
 	return devicedef;
 }
 
+static void devicedef_free(devicedef_t* devicedef) {
+	free(devicedef);
+}
+
 devicedef_t* devicedef_create(char* id, char* user_agent, char* fall_back, int actual_device_root, hashmap_t* capabilities) {
 
 	devicedef_t* devicedef = devicedef_alloc();
+
 	devicedef->id = id;
 	devicedef->user_agent = user_agent;
 	devicedef->fall_back = fall_back;
 	devicedef->actual_device_root = actual_device_root;
+
+	// TODO clone using allocator
 	devicedef->capabilities = capabilities;
 
 	return devicedef;
@@ -39,10 +46,8 @@ devicedef_t* devicedef_create(char* id, char* user_agent, char* fall_back, int a
 
 void devicedef_destroy(devicedef_t* devicedef) {
 
-	free(devicedef->id);
-	free(devicedef->user_agent);
-	free(devicedef->fall_back);
 	hashmap_destroy(devicedef->capabilities);
+	devicedef_free(devicedef);
 }
 
 char* devicedef_get_id(const devicedef_t* devicedef) {
@@ -78,6 +83,7 @@ char* devicedef_get_capability(const devicedef_t* devicedef, const char* name) {
 
 hashmap_t* devicedef_get_capabilities(const devicedef_t* devicedef) {
 	// TODO implement!
+	return NULL;
 }
 
 
@@ -102,4 +108,12 @@ bool devicedef_eq(const void* litem, const void* ritem) {
 	devicedef_t* rdevicedef = (devicedef_t*)ritem;
 
 	return strcmp(ldevicedef->id, rdevicedef->id)==0;
+}
+
+devicedef_t* devicedef_clone(devicedef_t* src, allocator_t* allocator) {
+
+	// TODO clone capabilities
+	devicedef_t* dest = devicedef_create(src->id, src->user_agent, src->fall_back, src->actual_device_root, src->capabilities);
+
+	return dest;
 }

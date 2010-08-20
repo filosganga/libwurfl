@@ -11,15 +11,18 @@
 
 #include <datrie/trie.h>
 #include <stdio.h>
+#include <strings.h>
 #include <assert.h>
 
 struct matcher_t_ {
 	Trie* trie;
 };
 
-static bool enumerate(const AlphaChar *key, TrieData key_data, void *user_data) {
+static Bool enumerate(const AlphaChar *key, TrieData key_data, void *user_data) {
 
-	fprintf(stderr,"key: %s\n", key);
+	devicedef_t* devicedef = key_data;
+
+	fprintf(stderr,"key: %s\n", devicedef_get_id(devicedef));
 	return false;
 }
 
@@ -33,12 +36,8 @@ static int add_to_trie(const void* item, void* data) {
 
 	const char* user_agent = devicedef_get_user_agent(device);
 
-//	fprintf(stderr, "Storing device: %s with user-agent: %s\n", devicedef_get_id(device), devicedef_get_user_agent(device));
-
 	if(user_agent!=NULL) {
-		if(!trie_store(trie, devicedef_get_user_agent(device), device)) {
-			fprintf(stderr, "Device: %s with user-agent: %s not stored\n", devicedef_get_id(device), devicedef_get_user_agent(device));
-		}
+		trie_store(trie, user_agent, device);
 	}
 
 	return 0;
@@ -52,13 +51,11 @@ matcher_t* matcher_create(repository_t* repository) {
 	//alpha_map_add_range(alpha_map, " ", "~");
 	matcher->trie = trie_new(alpha_map);
 
-	hashset_t* devices = repository_get_devices(repository);
-
 	coll_functor_t functor;
 	functor.data = matcher->trie;
 	functor.functor = &add_to_trie;
 
-	hashset_foreach(devices, &functor);
+	repository_foreach(repository, &functor);
 
 	trie_enumerate(matcher->trie, &enumerate, NULL);
 
@@ -69,12 +66,18 @@ const char* matcher_match(matcher_t* matcher, const char* user_agent) {
 
 	char* result = NULL;
 
-	devicedef_t* device = NULL;
-	if(trie_retrieve(matcher->trie, user_agent, device)){
-		result = devicedef_get_id(device);
+	size_t lenght = strlen(user_agent);
+	char* reduced = malloc(sizeof(char)*(lenght+1));
+	strcpy(reduced, user_agent);
+
+	devicedef_t* device=NULL;
+	while(lenght>0 && !trie_retrieve(matcher->trie, reduced, &device)) {
+		lenght--;
+		*(reduced + lenght)='\0';
 	}
-	else {
-		result = "NOT FOUND";
+
+	if(device !=NULL) {
+		result = devicedef_get_id(device);
 	}
 
 	return result;

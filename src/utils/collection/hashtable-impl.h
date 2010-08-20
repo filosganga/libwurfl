@@ -10,8 +10,6 @@
 
 #include "hashtable.h"
 
-#include "utils/memory/allocator.h"
-
 /**
  * The default initial capacity - MUST be a power of two.
  */
@@ -46,7 +44,6 @@ struct _hashtable_t {
 	uint32_t threshold;
 	uint32_t size;
 	float lfactor;
-	allocator_t* allocator;
 };
 
 uint32_t hashtable_index(const int32_t hash, uint32_t length);

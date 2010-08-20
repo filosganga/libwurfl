@@ -15,9 +15,9 @@ struct _device_t {
 	device_hierarchy_t* hierarchy;
 };
 
-static device* device_alloc(){
+static device_t* device_alloc(){
 
-	device* dev = malloc(sizeof(device));
+	device_t* dev = malloc(sizeof(device_t));
 
 	return dev;
 }

@@ -67,23 +67,20 @@ static bool evaluate_map_item(const void* item, void* data) {
 
 // Interface funcions *****************************************************
 
-hashmap_t* hashmap_create(coll_hash_f key_hash, coll_equals_f key_equals, allocator_t* allocator) {
+hashmap_t* hashmap_create(coll_equals_f key_equals, coll_hash_f key_hash, hashmap_options_t* options) {
 
-	if(allocator==NULL) {
-		allocator = main_allocator;
-	}
-
-	hashmap_t* map = allocator_alloc(allocator, sizeof(hashmap_t));
+	hashmap_t* map = malloc(sizeof(hashmap_t));
 
 	map->key_hash = key_hash;
 	map->key_equals = key_equals;
 
+	hashtable_options_t hashtable_options;
+	if(options!=NULL) {
+		hashtable_options.initial_capacity = options->initial_capacity;
+		hashtable_options.load_factor = options->load_factor;
+	}
 
-	hashtable_options_t table_opts;
-	table_opts.eq_fn = &item_eq;
-	table_opts.hash_fn = &item_hash;
-
-	map->hashtable = hashtable_create(table_opts, allocator);
+	map->hashtable = hashtable_create(&item_eq, &item_hash, &hashtable_options);
 
 	return map;
 }
@@ -206,12 +203,22 @@ void* hashmap_find(hashmap_t* map, coll_predicate_t* predicate, uint32_t nth) {
 	return found;
 }
 
+static int hashtable_functor(const void* item, void* data) {
+	hashmap_item_t* hashmap_item = item;
+
+	coll_functor_t* map_functor = data;
+	return map_functor->functor(hashmap_item->item, map_functor->data);
+}
+
 int hashmap_foreach(hashmap_t* hashmap, coll_functor_t* functor) {
 
 	assert(hashmap!=NULL);
 	assert(functor!=NULL);
 
-	// TODO functor
-	return 1;
+	coll_functor_t ht_functor;
+	ht_functor.functor = &hashtable_functor;
+	ht_functor.data = functor;
+
+	return hashtable_foreach(hashmap->hashtable, &ht_functor);
 }
 

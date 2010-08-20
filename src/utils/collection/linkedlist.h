@@ -9,8 +9,6 @@
 
 #include "collections.h"
 
-#include "../memory/allocator.h"
-
 #include <stdint.h>
 
 /* Possible error returns, powers of 2 */
@@ -37,7 +35,7 @@ typedef struct _linkedliststatus_t {
  *
  * @return Pointer to created linkedlist_t
  */
-linkedlist_t* linkedlist_create(allocator_t* allocator, coll_equals_f item_equals);
+linkedlist_t* linkedlist_create(coll_equals_f item_equals);
 
 /**
  * Call list_clear() and deallocate memory from list.

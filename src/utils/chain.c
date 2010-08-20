@@ -22,7 +22,7 @@ chain_t* chain_create(allocator_t* allocator) {
 	chain_t* chain = allocator_alloc(allocator, sizeof(chain_t));
 	chain->allocator = allocator;
 
-	chain->handlers = linkedlist_create(allocator, &ref_eq);
+	chain->handlers = linkedlist_create(&ref_eq);
 
 	return chain;
 

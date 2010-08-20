@@ -8,6 +8,7 @@
 #ifndef DEVICEDEF_H_
 #define DEVICEDEF_H_
 
+#include "utils/collection/hashtable.h"
 #include "utils/collection/hashmap.h"
 #include "utils/collection/collections.h"
 
@@ -35,13 +36,7 @@ unsigned long devicedef_hash(const void* item);
 
 bool devicedef_eq(const void* litem, const void* ritem);
 
+devicedef_t* devicedef_clone(devicedef_t* src, allocator_t* allocator);
 
-typedef struct _devicedefs_t devicedefs_t;
-
-devicedef_t* devicedefs_get(const char* id);
-
-bool devicedefs_contains(const char* id);
-
-int devicedefs_iterate(coll_functor_t* functor);
 
 #endif /* DEVICEDEF_H_ */

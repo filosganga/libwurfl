@@ -8,7 +8,7 @@
 #ifndef CQUEUE_H_
 #define CQUEUE_H_
 
-#include "memory/allocator.h"
+#include "utils/memory/allocator.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
