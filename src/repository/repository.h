@@ -10,7 +10,6 @@
 
 #include "resource.h"
 #include "devicedef.h"
-#include "hierarchy.h"
 
 #include "utils/collection/hashmap.h"
 #include "utils/collection/linkedlist.h"

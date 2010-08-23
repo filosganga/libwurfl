@@ -10,7 +10,6 @@
 
 #include "devicedef.h"
 
-#include "utils/memory/allocator.h"
 #include "utils/collection/hashmap.h"
 #include "utils/collection/hashtable.h"
 
@@ -20,7 +19,6 @@ struct _devicedef_t {
 	char* fall_back;
 	int actual_device_root;
 	hashmap_t* capabilities;
-	allocator_t* allocator;
 };
 
 devicedef_t* devicedef_create(char* id, char* user_agent, char* fall_back, int actual_device_root, hashmap_t* capabilities);

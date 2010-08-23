@@ -10,7 +10,6 @@
 #include "gnulib/error.h"
 #include "repository/repository.h"
 #include "repository/devicedef-impl.h"
-#include "repository/hierarchy-impl.h"
 
 #include "utils/collection/collections.h"
 #include "utils/collection/hashmap.h"
@@ -222,7 +221,7 @@ resource_data_t resource_parse(const char* path) {
 
 	xmlSAXVersion(&saxHandler, 2);
 	saxHandler.startDocument = &start_document;
-	saxHandler.endDocument = &sax_nop;
+	saxHandler.endDocument = &end_document;
 
 	saxHandler.startElementNs = &startElementNs;
 	saxHandler.endElementNs = &endElementNs;
@@ -252,6 +251,7 @@ resource_data_t resource_parse(const char* path) {
 		error(-1, 0, "Error parsing file %s: Bad number of devices", path);
 	}
 
+	// FIXME it does not work.
 	resource_data_t resource_data;
 	resource_data.version = "TBD";
 	resource_data.devices = context.devices;

@@ -9,7 +9,6 @@
 #include "resource-impl.h"
 
 #include "devicedef-impl.h"
-#include "hierarchy-impl.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -42,8 +41,6 @@ static void* devicedef_getkey(const void* item) {
 }
 
 static repository_t* alloc_repository() {
-
-	allocator_t* allocator = allocator_create();
 
 	repository_t* tmp = malloc(sizeof(repository_t));
 
