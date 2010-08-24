@@ -3,7 +3,6 @@
 #include "functors.h"
 
 #include "gnulib/error.h"
-#include "commons.h"
 
 #include <stdio.h>
 #include <assert.h>

@@ -6,7 +6,6 @@
  */
 
 #include "wurfl.h"
-#include "commons.h"
 
 #include "repository/repository.h"
 

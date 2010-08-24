@@ -5,9 +5,8 @@
  *      Author: filosganga
  */
 #include "resource.h"
-#include "commons.h"
-#include "gnulib/error.h"
 
+#include "gnulib/error.h"
 #include "utils/collection/collections.h"
 #include "utils/collection/hashmap.h"
 #include "utils/collection/hashtable.h"
