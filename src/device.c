@@ -2,53 +2,67 @@
  * device.c
  *
  *  Created on: 24-mar-2009
- *      Author: filosganga
+ *      Author: Filippo De Luca
  */
 
-#include "device.h"
-#include "repository/devicedef.h"
-#include "repository/hierarchy.h"
+#include "device-impl.h"
 
 #include <stdlib.h>
+#include <strings.h>
+#include <assert.h>
 
-struct _device_t {
-	device_hierarchy_t* hierarchy;
-};
+char* device_capability(const device_t* device, const char* name) {
 
-static device_t* device_alloc(){
+	assert(device!=NULL);
+	assert(name!=NULL);
+	assert(strlen(name)>0);
 
-	device_t* dev = malloc(sizeof(device_t));
+	device_t* current = device;
+	const char* value = NULL;
+	while((value = hashmap_get(current->capabilities, name)) == NULL && current->parent != NULL) {
+		current = current->parent;
+	}
 
-	return dev;
+	if(value == NULL) {
+		// Error
+	}
+
+	return value;
 }
 
-device_t* device_create(device_hierarchy_t* hierarchy) {
+char* device_id(const device_t* device) {
 
-	device_t* dev = device_alloc();
+	assert(device!=NULL);
 
-	dev->hierarchy = hierarchy;
-
-	return dev;
+	return device->id;
 }
 
-void device_destroy(device_t* dev) {
+char* device_user_agent(const device_t* device) {
 
-	destroy_hierarchy(dev->hierarchy);
-	free(dev);
+	assert(device!=NULL);
+
+	return device->user_agent;
 }
 
-char* device_get_capability(device_t* dev, char* name) {
+int device_cmp(const void* left, const void* right) {
 
-	return hierarchy_get_capability(dev->hierarchy, name);
+	device_t* ldevice = left;
+	device_t* rdevice = right;
+
+	return strcmp(ldevice->id, rdevice->id);
 }
 
-char* device_get_id(device_t* dev) {
+uint32_t device_hash(const void* item) {
 
-	return devicedef_get_id(hierarchy_get_target(dev->hierarchy));
+	device_t* device = item;
+
+	return string_hash(device->id);
 }
 
-char* device_get_user_agent(device_t* dev) {
+bool device_eq(const void* left, const void* right) {
 
-	return devicedef_get_user_agent(hierarchy_get_target(dev->hierarchy));
+	device_t* ldevice = left;
+	device_t* rdevice = right;
+
+	return string_eq(ldevice->id, rdevice->id);
 }
-

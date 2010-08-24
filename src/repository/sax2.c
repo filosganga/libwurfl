@@ -4,12 +4,9 @@
  *  Created on: 23-mar-2009
  *      Author: filosganga
  */
-#include "resource-impl.h"
-
+#include "resource.h"
 #include "commons.h"
 #include "gnulib/error.h"
-#include "repository/repository.h"
-#include "repository/devicedef-impl.h"
 
 #include "utils/collection/collections.h"
 #include "utils/collection/hashmap.h"
@@ -49,7 +46,7 @@ typedef struct {
 	char* current_device_user_agent;
 	char* current_device_fall_back;
 
-	hashmap_t* devices;
+	hashtable_t* devices;
 	hashmap_t* capabilities;
 } parse_context_t;
 
@@ -126,15 +123,19 @@ static void start_device(parse_context_t* context, int nb_attributes, const xmlC
 
 static void end_device(parse_context_t* context) {
 
-	devicedef_t* devicedef = devicedef_create(context->current_device_id,
-			context->current_device_user_agent,
-			context->current_device_fall_back,
-			context->current_device_actual_device_root,
-			context->capabilities);
+	devicedef_t* devicedef = malloc(sizeof(devicedef_t));
+	if(devicedef==NULL) {
+		// TODO error
+	}
 
+	devicedef->id = context->current_device_id;
+	devicedef->fall_back = context->current_device_fall_back;
+	devicedef->actual_device_root = context->current_device_actual_device_root;
+	devicedef->user_agent = context->current_device_user_agent;
+	devicedef->capabilities = context->capabilities;
 
 	//fprintf(stderr, "Adding device id: %s\n", devicedef_get_id(devicedef));
-	hashmap_put(context->devices, devicedef_get_id(devicedef), devicedef);
+	hashtable_add(context->devices, devicedef);
 
 	// reset context
 	context->current_device_id = NULL;
@@ -214,7 +215,7 @@ static void sax_nop(){
 	// Empty
 }
 
-resource_data_t resource_parse(const char* path) {
+int resource_parse(const char* path, resource_data_t* resource_data) {
 
 	xmlSAXHandler saxHandler;
 	memset(&saxHandler, 0, sizeof(saxHandler));
@@ -237,26 +238,16 @@ resource_data_t resource_parse(const char* path) {
 	parse_context_t context;
 	memset(&context, 0, sizeof(context));
 
-	hashmap_options_t devices_options;
-	devices_options.initial_capacity = 16000;
-	devices_options.load_factor = 0.75f;
-
-	context.devices = hashmap_create(&string_eq, &string_hash, &devices_options);
+	context.devices = resource_data->devices;
 
 	fprintf(stderr, "Starting parsing\n");
 	int sax_error = xmlSAXUserParseFile(&saxHandler, &context, path);
 	fprintf(stderr, "Sax error: %d\n", sax_error);
 
-	if(context.size != hashmap_size(context.devices)) {
-		error(-1, 0, "Error parsing file %s: Bad number of devices", path);
-	}
-
 	// FIXME it does not work.
-	resource_data_t resource_data;
-	resource_data.version = "TBD";
-	resource_data.devices = context.devices;
+	resource_data->version = "TBD";
 
 	xmlCleanupParser();
 
-	return resource_data;
+	return 0;
 }

@@ -2,90 +2,14 @@
  * devicedefinition.c
  *
  *  Created on: 28-mar-2009
- *      Author: filosganga
+ *      Author: Filippo De Luca
  */
 
-#include "devicedef-impl.h"
+#include "resource.h"
 
-#include "gnulib/error.h"
-
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-
-extern int errno;
-
-static devicedef_t* devicedef_alloc() {
-
-	devicedef_t* devicedef = malloc(sizeof(devicedef_t));
-	if(devicedef==NULL) {
-		error(1, errno, "Error allocating devicedef");
-	}
-	return devicedef;
-}
-
-static void devicedef_free(devicedef_t* devicedef) {
-	free(devicedef);
-}
-
-devicedef_t* devicedef_create(char* id, char* user_agent, char* fall_back, int actual_device_root, hashmap_t* capabilities) {
-
-	devicedef_t* devicedef = devicedef_alloc();
-
-	devicedef->id = id;
-	devicedef->user_agent = user_agent;
-	devicedef->fall_back = fall_back;
-	devicedef->actual_device_root = actual_device_root;
-
-	// TODO clone using allocator
-	devicedef->capabilities = capabilities;
-
-	return devicedef;
-}
-
-void devicedef_destroy(devicedef_t* devicedef) {
-
-	hashmap_destroy(devicedef->capabilities);
-	devicedef_free(devicedef);
-}
-
-char* devicedef_get_id(const devicedef_t* devicedef) {
-
-	assert(devicedef != NULL);
-
-	return devicedef->id;
-}
-
-char* devicedef_get_user_agent(const devicedef_t* devicedef) {
-
-	assert(devicedef != NULL);
-
-	return devicedef->user_agent;
-}
-
-char* devicedef_get_fall_back(const devicedef_t* devicedef) {
-	assert(devicedef != NULL);
-	return devicedef->fall_back;
-}
-
-int devicedef_is_root(const devicedef_t* devicedef) {
-	assert(devicedef != NULL);
-	return devicedef->actual_device_root;
-}
-
-char* devicedef_get_capability(const devicedef_t* devicedef, const char* name) {
-
-	char* value = (char*)hashmap_get(devicedef->capabilities, name);
-
-	return value;
-}
-
-hashmap_t* devicedef_get_capabilities(const devicedef_t* devicedef) {
-	// TODO implement!
-	return NULL;
-}
-
 
 int devicedef_cmp(const void* litem, const void* ritem) {
 
@@ -95,7 +19,7 @@ int devicedef_cmp(const void* litem, const void* ritem) {
 	return strcmp(ldevicedef->id, rdevicedef->id);
 }
 
-unsigned long devicedef_hash(const void* item) {
+uint32_t devicedef_hash(const void* item) {
 
 	devicedef_t* devicedef = (devicedef_t*)item;
 
@@ -110,10 +34,7 @@ bool devicedef_eq(const void* litem, const void* ritem) {
 	return strcmp(ldevicedef->id, rdevicedef->id)==0;
 }
 
-devicedef_t* devicedef_clone(devicedef_t* src, allocator_t* allocator) {
+const char* devicedef_id(const devicedef_t* devicedef) {
 
-	// TODO clone capabilities
-	devicedef_t* dest = devicedef_create(src->id, src->user_agent, src->fall_back, src->actual_device_root, src->capabilities);
-
-	return dest;
+	return devicedef->id;
 }

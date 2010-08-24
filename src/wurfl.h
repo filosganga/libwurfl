@@ -20,17 +20,23 @@
  *  Created on: 23-mar-2009
  *      Author: Filippo De Luca
  */
-#include "device.h"
-
-#include "utils/memory/allocator.h"
-
 #ifndef WURFL_H_
 #define WURFL_H_
 
+#include "device.h"
+
+typedef struct _request_t {
+	const char* user_agent;
+} request_t;
+
+typedef struct _wurfl_t wurfl_t;
+
 const char* program_name = "cwurfl";
 
-device_t* get_device_from_request(void* request);
+wurfl_t* wurfl_init(const char* root, const char** patches);
 
-device_t* get_device_from_user_agent(char* user_agent);
+void wurfl_destroy(wurfl_t* wurfl);
+
+device_t* wurfl_match(const wurfl_t* wurfl, const request_t request);
 
 #endif /* WURFL_H_ */

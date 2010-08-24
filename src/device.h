@@ -7,18 +7,22 @@
 #ifndef DEVICE_H_
 #define DEVICE_H_
 
-#include "repository/repository.h"
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 typedef struct _device_t device_t;
 
-device_t* device_create(device_hierarchy_t* hierarchy);
+char* device_id(const device_t* device);
 
-void device_destroy(device_t* device);
+char* device_user_agent(const device_t* device);
 
-char* device_get_capability(device_t* device, char* name);
+char* device_capability(const device_t* device, const char* name);
 
-char* device_get_id(device_t* device);
+int device_cmp(const void* ldevice, const void* rdevice);
 
-char* device_get_user_agent(device_t* device);
+uint32_t device_hash(const void* item);
+
+bool device_eq(const void* litem, const void* ritem);
 
 #endif /* DEVICE_H_ */
