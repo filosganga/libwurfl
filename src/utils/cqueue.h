@@ -8,8 +8,6 @@
 #ifndef CQUEUE_H_
 #define CQUEUE_H_
 
-#include "utils/memory/allocator.h"
-
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -22,7 +20,7 @@ typedef struct {
 
 typedef struct _cqueue_t cqueue_t;
 
-cqueue_t* cqueue_create(allocator_t* allocator, size_t size);
+cqueue_t* cqueue_create(size_t size);
 
 void cqueue_destroy(cqueue_t* cqueue);
 

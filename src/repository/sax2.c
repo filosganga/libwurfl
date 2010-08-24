@@ -11,6 +11,7 @@
 #include "utils/collection/collections.h"
 #include "utils/collection/hashmap.h"
 #include "utils/collection/hashtable.h"
+#include "utils/collection/utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>

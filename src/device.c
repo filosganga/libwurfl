@@ -46,6 +46,9 @@ char* device_user_agent(const device_t* device) {
 
 int device_cmp(const void* left, const void* right) {
 
+	assert(left!=NULL);
+	assert(right!=NULL);
+
 	device_t* ldevice = left;
 	device_t* rdevice = right;
 
@@ -54,12 +57,18 @@ int device_cmp(const void* left, const void* right) {
 
 uint32_t device_hash(const void* item) {
 
+	assert(item != NULL);
+
 	device_t* device = item;
 
 	return string_hash(device->id);
 }
 
 bool device_eq(const void* left, const void* right) {
+
+	assert(left!=NULL);
+	assert(right!=NULL);
+
 
 	device_t* ldevice = left;
 	device_t* rdevice = right;

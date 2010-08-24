@@ -29,13 +29,13 @@ static repository_t* alloc_repository() {
 
 void index_devicedefs(hashtable_t* set, hashmap_t* map) {
 
-	tomap_data_t tomap_data;
+	functor_tomap_data_t tomap_data;
 	tomap_data.key_get = &devicedef_id;
 	tomap_data.map = map;
 
 	coll_functor_t functor;
 	functor.data = &tomap_data;
-	functor.functor = &tomap_functor;
+	functor.functor = &funtor_tomap;
 
 	hashtable_foreach(set, &functor);
 }
@@ -66,7 +66,7 @@ repository_t* repository_create(const char* root, const char** patches) {
 
 	// destroy devicedefs
 	hashmap_foreach(devicedefs_by_id, NULL);
-	hashmap_destroy(devicedefs_by_id);
+	hashmap_destroy(devicedefs_by_id, NULL);
 
 
 	return repository;
@@ -74,7 +74,7 @@ repository_t* repository_create(const char* root, const char** patches) {
 
 void repository_destroy(repository_t* repository) {
 
-	hashmap_destroy(repository->devices);
+	hashmap_destroy(repository->devices, NULL);
 	free(repository);
 }
 

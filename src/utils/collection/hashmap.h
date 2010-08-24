@@ -21,7 +21,7 @@ typedef struct {
 
 hashmap_t* hashmap_create(coll_equals_f key_equals, coll_hash_f key_hash, hashmap_options_t* options);
 
-void hashmap_destroy(hashmap_t* hashmap);
+void hashmap_destroy(hashmap_t* hashmap, coll_unduper_t* unduper);
 
 
 void* hashmap_get(hashmap_t* hashmap, const void* key);
@@ -30,7 +30,7 @@ void* hashmap_put(hashmap_t* hashmap, const void* key, const void* item);
 
 void* hashmap_remove(hashmap_t* hashmap, const void* key);
 
-void hashmap_clear(hashmap_t* hashmap);
+void hashmap_clear(hashmap_t* hashmap, coll_unduper_t* unduper);
 
 
 uint32_t hashmap_size(hashmap_t* hashmap);

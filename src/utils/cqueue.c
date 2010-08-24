@@ -16,7 +16,6 @@ struct _cqueue_t {
 	size_t size;
 	size_t reads;
 	size_t writes;
-	allocator_t* allocator;
 };
 
 size_t min_size(size_t left, size_t right) {
@@ -58,12 +57,11 @@ bool is_empty(cqueue_t* cqueue) {
 	return get_available_data(cqueue) == 0;
 }
 
-cqueue_t* cqueue_create(allocator_t* allocator, size_t size) {
+cqueue_t* cqueue_create(size_t size) {
 
-	cqueue_t* cqueue = allocator_alloc(allocator, sizeof(cqueue_t));
+	cqueue_t* cqueue = malloc(sizeof(cqueue_t));
 
-	cqueue->data = allocator_alloc(allocator, size);
-	cqueue->allocator = allocator;
+	cqueue->data = malloc(size);
 
 	cqueue->size = size;
 	cqueue->reads=0;
@@ -74,8 +72,8 @@ cqueue_t* cqueue_create(allocator_t* allocator, size_t size) {
 
 void cqueue_destroy(cqueue_t* cqueue) {
 
-	allocator_free(cqueue->allocator, cqueue->data);
-	allocator_free(cqueue->allocator, cqueue);
+	free(cqueue->data);
+	free(cqueue);
 }
 
 void cqueue_write(cqueue_t* cqueue, char* buffer, size_t size) {

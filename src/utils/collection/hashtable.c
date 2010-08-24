@@ -1,6 +1,6 @@
 
 #include "hashtable-impl.h"
-#include "collections-impl.h"
+#include "functors.h"
 
 #include "gnulib/error.h"
 #include "commons.h"
@@ -305,9 +305,15 @@ bool hashtable_foreach(hashtable_t* hashtable, coll_functor_t* functor) {
 
 void* hashtable_find(hashtable_t* hashtable, coll_predicate_t* predicate, uint32_t nth) {
 
-	coll_finder_data_t coll_finder_data;
+	functor_find_data_t coll_finder_data;
 	coll_finder_data.nth = nth;
 	coll_finder_data.predicate = predicate;
+
+	coll_functor_t functor;
+	functor.data = &coll_finder_data;
+	functor.functor = &functor_find;
+
+	hashtable_foreach(hashtable, &functor);
 
 	void* found = coll_finder_data.found;
 

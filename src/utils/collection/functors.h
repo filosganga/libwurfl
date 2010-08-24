@@ -9,19 +9,30 @@
 #define FUNCTORS_H_
 
 #include "collections.h"
+#include "hashmap.h"
+
+#include <stdint.h>
 
 typedef struct {
 	hashmap_t* map;
 	void* (*key_get)(const void* item);
-} tomap_data_t;
+} functor_tomap_data_t;
 
-int tomap_functor(const void* item, void* data) {
-	tomap_data_t* tomap_data = data;
+int funtor_tomap(const void* item, void* data);
 
-	void* key = tomap_data->key_get(item);
-	hashmap_put(tomap_data->map, key, item);
+typedef struct {
+	uint32_t index;
+	void** array;
+} functor_toarray_data_t;
 
-	return 0;
-}
+int functor_toarray(const void* item, void* data);
+
+typedef struct {
+	uint32_t nth;
+	coll_predicate_t* predicate;
+	void* found;
+} functor_find_data_t;
+
+int functor_find(const void* item, void* xtra);
 
 #endif /* FUNCTORS_H_ */

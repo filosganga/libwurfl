@@ -9,12 +9,10 @@
 #ifndef CHAIN_H_
 #define CHAIN_H_
 
-#include "utils/memory/allocator.h"
-
 #include <stdlib.h>
 #include <stdint.h>
 
-typedef enum _handler_result_t {
+typedef enum {
 	CHN_FINISHED=1,
 	CHN_CONTINUE=0
 } handler_result_t;
@@ -34,7 +32,7 @@ typedef struct _chain_t chain_t;
  *
  * @param allocator allocator_t used to allocate chain.
  */
-chain_t* chain_create(allocator_t* allocator);
+chain_t* chain_create();
 
 void chain_destroy(chain_t* chain);
 

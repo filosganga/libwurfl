@@ -21,7 +21,7 @@ enum list_err {LST_OK = 0, LST_NOMEM = 2};
  */
 typedef struct _linkedlist_t linkedlist_t;
 
-typedef struct _linkedliststatus_t {
+typedef struct {
    enum list_err errors;
    unsigned int version;
 } linkedliststatus_t;
@@ -42,7 +42,7 @@ linkedlist_t* linkedlist_create(coll_equals_f item_equals);
  *
  * @attention After calling this function, the given linkedlist_t points to invalid location.
  */
-void linkedlist_destroy(linkedlist_t*);
+void linkedlist_destroy(linkedlist_t*, coll_unduper_t*);
 
 /**
  * Add a item to the given linkedlist_t
@@ -70,7 +70,7 @@ int linkedlist_addat(linkedlist_t* list, uint32_t index, const void* item);
 /**
  * Remove first item from the list, result equals(curr_item, item) == TRUE
  */
-int linkedlist_remove(linkedlist_t* list, const void* item);
+void* linkedlist_remove(linkedlist_t* list, const void* item);
 
 /**
  * Remove item at index position, shift other items.
@@ -115,19 +115,19 @@ uint32_t linkedlist_size(linkedlist_t* list);
  *
  * @param list The linkedlist_t to be cleared.
  */
-void linkedlist_clear(linkedlist_t* list);
+void linkedlist_clear(linkedlist_t* list, coll_unduper_t* unduper);
 
 /**
  * Get list's usage statistics an status info
  */
 linkedliststatus_t linkedlist_status(linkedlist_t* list);
 
-void linkedlist_to_array(linkedlist_t* list, void** array);
-
 void* linkedlist_find(linkedlist_t* list, coll_predicate_t* predicate);
 
 int linkedlist_foreach(linkedlist_t* list, coll_functor_t* functor);
 
 linkedlist_t* linkedlist_select(linkedlist_t* list, coll_predicate_t* predicate);
+
+void linkedlist_to_array(linkedlist_t* list, void** array);
 
 #endif /*LIST_H_*/

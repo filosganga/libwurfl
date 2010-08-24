@@ -1,8 +1,6 @@
 #ifndef COLLECTIONS_H_
 #define COLLECTIONS_H_
 
-#include "utils/memory/allocator.h"
-
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -78,39 +76,6 @@ typedef bool (*coll_equals_f)(const void* litem, const void *ritem);
  * @return The item hashing
  */
 typedef uint32_t (*coll_hash_f)(const void *item);
-
-
-void coll_init_nop_unduper(coll_unduper_t* unduper);
-
-void coll_init_allocator_unduper(coll_unduper_t* unduper, allocator_t* allocator);
-
-/**
- * Calculate the hash for a string.
- *
- * @param string The string to calculate hash from.
- * @return hashing code obtained from the given string
- */
-uint32_t string_hash(const void* string);
-
-int string_cmp(const void* litem, const void *ritem);
-
-bool string_eq(const void *litem, const void *ritem);
-
-
-
-uint32_t int_hash(const void* item);
-
-int int_cmp(const void* litem, const void *ritem);
-
-bool int_eq(const void* litem, const void *ritem);
-
-
-
-uint32_t ref_hash(const void* item);
-
-int ref_cmp(const void* litem, const void *ritem);
-
-bool ref_eq(const void* litem, const void *ritem);
 
 
 #endif /*COLLECTIONS_H_*/

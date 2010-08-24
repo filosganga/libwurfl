@@ -8,7 +8,6 @@
 #define HASHTABLE_H_
 
 #include "collections.h"
-#include "utils/memory/allocator.h"
 
 #include <stdlib.h>
 #include <stdint.h>

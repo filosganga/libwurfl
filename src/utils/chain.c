@@ -7,31 +7,27 @@
 
 #include "chain.h"
 
-#include "utils/memory/allocator.h"
 #include "collection/linkedlist.h"
+#include "collection/utils.h"
 
 #include "assert.h"
 
 struct _chain_t {
 	linkedlist_t* handlers;
-	allocator_t* allocator;
 };
 
-chain_t* chain_create(allocator_t* allocator) {
+chain_t* chain_create() {
 
-	chain_t* chain = allocator_alloc(allocator, sizeof(chain_t));
-	chain->allocator = allocator;
-
+	chain_t* chain = malloc(sizeof(chain_t));
 	chain->handlers = linkedlist_create(&ref_eq);
 
 	return chain;
-
 }
 
 void chain_destroy(chain_t* chain) {
 
-	linkedlist_destroy(chain->handlers);
-	allocator_free(chain->allocator, chain);
+	linkedlist_destroy(chain->handlers, NULL);
+	free(chain);
 }
 
 void chain_add_handler(chain_t* chain, handler_t* handler) {

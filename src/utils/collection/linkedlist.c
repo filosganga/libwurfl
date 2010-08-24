@@ -1,4 +1,7 @@
 #include "linkedlist-impl.h"
+
+#include "functors.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -151,11 +154,9 @@ uint32_t linkedlist_last_index(linkedlist_t* list, const void* item) {
 	return index;
 }
 
-int linkedlist_remove(linkedlist_t* list, const void* item) {
+void* linkedlist_remove(linkedlist_t* list, const void* item) {
 
-	void* toRemove = linkedlist_removeat(list, linkedlist_index(list, item));
-
-	return toRemove != NULL;
+	return linkedlist_removeat(list, linkedlist_index(list, item));
 }
 
 void* linkedlist_removeat(linkedlist_t* list, uint32_t index) {
@@ -229,15 +230,15 @@ linkedlist_t* linkedlist_create(coll_equals_f item_equals) {
 	return list;
 }
 
-void linkedlist_destroy(linkedlist_t* list) {
+void linkedlist_destroy(linkedlist_t* list, coll_unduper_t* unduper) {
 
 	assert(list != NULL);
 
-	linkedlist_clear(list);
+	linkedlist_clear(list, unduper);
 	linkedlist_free(list);
 }
 
-void linkedlist_clear(linkedlist_t* list) {
+void linkedlist_clear(linkedlist_t* list, coll_unduper_t* unduper) {
 
 
 	assert(list != NULL);
@@ -255,6 +256,10 @@ void linkedlist_clear(linkedlist_t* list) {
 
 		list->start = next;
 		list->size--;
+
+		if(unduper!=NULL) {
+			unduper->undupe(to_free->item, unduper->xtra);
+		}
 
 		linkedlist_node_destroy(list, to_free);
 	}
@@ -280,19 +285,29 @@ linkedliststatus_t linkedlist_status(linkedlist_t* list) {
 	return list->stats;
 }
 
+int linkedlist_foreach(linkedlist_t* list, coll_functor_t* functor) {
+
+	int finished = 0;
+	linkedlist_node_t* current = list->start;
+
+	while (current != NULL && !finished) {
+		functor->functor(current->item, functor->data);
+		current = current->next;
+	}
+
+	return finished;
+}
+
 void linkedlist_to_array(linkedlist_t* list, void** array) {
 
 	assert(list!=NULL);
 	assert(array!=NULL);
 
-	int index = 0;
+	functor_toarray_data_t functor_data = {0, array};
+	coll_functor_t functor;
+	functor.data = &functor_data;
+	functor.functor = &functor_toarray;
 
-	linkedlist_node_t* current = list->start;
-
-	while(current != NULL) {
-
-		*(array + index) = current->item;\
-		current = current->next;
-	}
+	linkedlist_foreach(list, &functor);
 }
 

@@ -5,7 +5,7 @@
  *      Author: filosganga
  */
 
-#include "collections-impl.h"
+#include "utils.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -19,40 +19,18 @@ static void nop_undupe(void* item, const void* xtra) {
 	// Empty
 }
 
-static void allocator_undupe(void* item, const void* xtra) {
-	const allocator_t* allocator = xtra;
-	allocator_free(allocator, item);
-}
-
 void coll_init_nop_unduper(coll_unduper_t* unduper) {
 	unduper->undupe = &nop_undupe;
 	unduper->xtra = NULL;
 }
 
-void coll_init_allocator_unduper(coll_unduper_t* unduper, allocator_t* allocator) {
-	unduper->undupe = &allocator_undupe;
-	unduper->xtra = allocator;
+static void default_undupe(void* item, const void* xtra) {
+	free(item);
 }
 
-
-// Functors ***************************************************************
-
-int coll_finder(const void* item, void* xtra) {
-
-	int found = 0;
-
-	coll_finder_data_t* data = xtra;
-	if(data->predicate->evaluate(item, data->predicate->data)) {
-		if(data->nth==0) {
-			data->found = item;
-			found = 1;
-		}
-		else {
-			data->nth--;
-		}
-	}
-
-	return found;
+void coll_init_default_unduper(coll_unduper_t* unduper) {
+	unduper->undupe = &default_undupe;
+	unduper->xtra = NULL;
 }
 
 // Primitive utility functions ********************************************

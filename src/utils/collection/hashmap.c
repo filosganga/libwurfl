@@ -2,7 +2,6 @@
 
 #include "hashtable-impl.h"
 #include "gnulib/error.h"
-#include "utils/memory/allocator.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -13,8 +12,6 @@
 #include <assert.h>
 
 extern int errno;
-
-extern allocator_t* main_allocator;
 
 typedef struct _hashmap_item_t {
 	void *key;
@@ -62,6 +59,18 @@ static bool evaluate_map_item(const void* item, void* data) {
 	evaluate_map_item_data_t* ev_data = data;
 
 	return ev_data->key_predicate->evaluate(hashmap_item->key, ev_data->key_predicate->data);
+}
+
+static void item_undupe(void* item, const void* xtra) {
+
+	coll_unduper_t* map_unduper = xtra;
+	hashmap_item_t* hashmap_item = item;
+
+	if(map_unduper) {
+		map_unduper->undupe(hashmap_item->item, map_unduper->xtra);
+	}
+
+	free(hashmap_item);
 }
 
 
@@ -163,20 +172,26 @@ int hashmap_contains(hashmap_t* hashmap, const void* key) {
 	return hashmap_get(hashmap, key) != NULL;
 }
 
-void hashmap_clear(hashmap_t* map) {
+void hashmap_clear(hashmap_t* map, coll_unduper_t* unduper) {
 
 	assert(map!=NULL);
 
-	hashtable_clear(map->hashtable, NULL);
+	coll_unduper_t set_unduper;
+	set_unduper.undupe = &item_undupe;
+	set_unduper.xtra = unduper;
+
+	hashtable_clear(map->hashtable, &set_unduper);
 }
 
-void hashmap_destroy(hashmap_t* map) {
+void hashmap_destroy(hashmap_t* map, coll_unduper_t* unduper) {
 
 	assert(map!=NULL);
 
-	hashtable_destroy(map->hashtable, NULL);
+	coll_unduper_t set_unduper;
+	set_unduper.undupe = &item_undupe;
+	set_unduper.xtra = unduper;
 
-	// FIXME use allocator
+	hashtable_destroy(map->hashtable, &set_unduper);
 	free(map);
 }
 
