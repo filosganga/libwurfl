@@ -33,8 +33,3 @@ bool devicedef_eq(const void* litem, const void* ritem) {
 
 	return strcmp(ldevicedef->id, rdevicedef->id)==0;
 }
-
-const char* devicedef_id(const devicedef_t* devicedef) {
-
-	return devicedef->id;
-}

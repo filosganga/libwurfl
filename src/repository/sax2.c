@@ -126,6 +126,7 @@ static void end_device(parse_context_t* context) {
 	devicedef_t* devicedef = malloc(sizeof(devicedef_t));
 	if(devicedef==NULL) {
 		// TODO error
+		assert(false);
 	}
 
 	devicedef->id = context->current_device_id;
@@ -134,7 +135,6 @@ static void end_device(parse_context_t* context) {
 	devicedef->user_agent = context->current_device_user_agent;
 	devicedef->capabilities = context->capabilities;
 
-	//fprintf(stderr, "Adding device id: %s\n", devicedef_get_id(devicedef));
 	hashtable_add(context->devices, devicedef);
 
 	// reset context
@@ -145,6 +145,8 @@ static void end_device(parse_context_t* context) {
 	context->capabilities = NULL;
 
 	context->size++;
+
+	assert(context->size == hashtable_size(context->devices));
 
 	if(context->size%100==0) {
 		fprintf(stderr, "Added %d devices\n", context->size);

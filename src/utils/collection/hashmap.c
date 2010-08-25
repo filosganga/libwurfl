@@ -122,8 +122,6 @@ void* hashmap_get(hashmap_t* map, const void* key) {
 
 	if(found){
 		item = found->item;
-		// FIXME use allocator
-		free(found);
 	}
 
 	return item;
@@ -144,7 +142,6 @@ void* hashmap_remove(hashmap_t* map, const void* key) {
 
 	if(removed){
 		item = removed->item;
-		// FIXME use allocator
 		free(removed);
 	}
 

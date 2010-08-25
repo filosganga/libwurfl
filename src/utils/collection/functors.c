@@ -7,7 +7,7 @@
 
 #include "functors.h"
 
-int funtor_tomap(const void* item, void* data) {
+int functor_tomap(const void* item, void* data) {
 	functor_tomap_data_t* tomap_data = data;
 
 	void* key = tomap_data->key_get(item);
@@ -40,4 +40,10 @@ int functor_find(const void* item, void* xtra) {
 	}
 
 	return found;
+}
+
+void functor_init(coll_functor_f* function, void* data, coll_functor_t* functor) {
+
+	functor->functor = function;
+	functor->data = data;
 }

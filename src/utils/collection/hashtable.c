@@ -228,8 +228,6 @@ void* hashtable_add(hashtable_t* hashtable, const void* item) {
 	}
 	else {
 		hashtable_add_entry(hashtable, table_index, item);
-		if(hashtable->table_used%100==0)
-		fprintf(stderr, "Hashtable used: %d\n", hashtable->table_used);
 	}
 
 	return old_item;

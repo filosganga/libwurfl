@@ -18,7 +18,7 @@ typedef struct {
 	void* (*key_get)(const void* item);
 } functor_tomap_data_t;
 
-int funtor_tomap(const void* item, void* data);
+int functor_tomap(const void* item, void* data);
 
 typedef struct {
 	uint32_t index;
@@ -34,5 +34,7 @@ typedef struct {
 } functor_find_data_t;
 
 int functor_find(const void* item, void* xtra);
+
+void functor_init(coll_functor_f* function, void* data, coll_functor_t* functor);
 
 #endif /* FUNCTORS_H_ */

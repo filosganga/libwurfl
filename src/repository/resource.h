@@ -33,8 +33,6 @@ uint32_t devicedef_hash(const void* item);
 
 bool devicedef_eq(const void* litem, const void* ritem);
 
-const char* devicedef_id(const devicedef_t* devicedef);
-
 int resource_parse(const char* path, resource_data_t* resource_data);
 
 #endif /* PARSER_H_ */

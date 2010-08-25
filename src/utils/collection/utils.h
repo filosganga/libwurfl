@@ -10,6 +10,11 @@
 
 #include "collections.h"
 
+void coll_init_nop_unduper(coll_unduper_t* unduper);
+
+void coll_init_default_unduper(coll_unduper_t* unduper);
+
+
 /**
  * Calculate the hash for a string.
  *
