@@ -43,6 +43,7 @@ void wurfl_destroy(wurfl_t* wurfl) {
 
 device_t* wurfl_match(const wurfl_t* wurfl, const request_t request) {
 
+
 	// TODO match
 	return NULL;
 }
@@ -50,14 +51,15 @@ device_t* wurfl_match(const wurfl_t* wurfl, const request_t request) {
 int main(int argc, char **argv) {
 
 	const char* test_ua="SAMSUNG-SGH-E708";
-	const char* wurfl_path = "etc/wurfl.xml";
+	const char* root = "etc/wurfl.xml";
+	const char* patches[] = {"etc/web_browsers_patch.xml", NULL};
 
-	wurfl_t* wurfl = wurfl_init(wurfl_path, NULL);
+	wurfl_t* wurfl = wurfl_init(root, patches);
 
 	request_t request = {test_ua};
-	device_t* device = wurfl_match(wurfl, request);
+	//device_t* device = wurfl_match(wurfl, request);
 
-	fprintf(stderr, "End\n");
+	device_t* device = repository_get(wurfl->repository, "generic");
 	printf("Device: %s\n", device_id(device));
 
 	wurfl_destroy(wurfl);

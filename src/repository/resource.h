@@ -14,9 +14,12 @@
 
 #include <stdlib.h>
 
+typedef enum {ROOT, PATCH} resource_type_e;
+
 typedef struct {
 	char* version;
 	hashtable_t* devices;
+	resource_type_e type;
 } resource_data_t;
 
 typedef struct {
@@ -33,6 +36,8 @@ uint32_t devicedef_hash(const void* item);
 
 bool devicedef_eq(const void* litem, const void* ritem);
 
-int resource_parse(const char* path, resource_data_t* resource_data);
+int resource_parse(resource_data_t* resource_data, const char* path, hashtable_t* strings);
+
+const char* create_string(hashtable_t* strings, const char* string);
 
 #endif /* PARSER_H_ */

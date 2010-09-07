@@ -44,6 +44,17 @@ char* device_user_agent(const device_t* device) {
 	return device->user_agent;
 }
 
+void device_patch(device_t* patched, const device_t* source, const device_t* patching) {
+
+	// It is not relevant
+	patched->id = source->id;
+	patched->user_agent = source->user_agent;
+	patched->parent = patching->parent;
+
+	hashmap_putall(patched->capabilities, source->capabilities);
+	hashmap_putall(patched->capabilities, patching->capabilities);
+}
+
 int device_cmp(const void* left, const void* right) {
 
 	assert(left!=NULL);

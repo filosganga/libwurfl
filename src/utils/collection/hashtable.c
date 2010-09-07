@@ -2,8 +2,6 @@
 #include "hashtable-impl.h"
 #include "functors.h"
 
-#include "gnulib/error.h"
-
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
@@ -51,12 +49,10 @@ static void hashtable_resize(hashtable_t* hashtable, int new_capacity) {
     	}
 
     	free(old_table);
-
-        fprintf(stderr, "hashtable resized to: %d\n", new_capacity);
     }
     else {
     	// TODO errore
-    	error(-1, errno, "Errore resize hashtable");
+    	//error(-1, errno, "Errore resize hashtable");
     }
 
 }
@@ -165,14 +161,15 @@ hashtable_t* hashtable_create(coll_equals_f eq_fn, coll_hash_f hash_fn, hashtabl
 
 	hashtable_t* hashtable = malloc(sizeof(hashtable_t));
 	if(hashtable==NULL) {
-		error(-1, errno, "Error allocating hashtable");
+		// TODO error
+		//error(-1, errno, "Error allocating hashtable");
 	}
 
 	hashtable_entry_t** table = malloc(sizeof(hashtable_entry_t*) * capacity);
 	if(table==NULL) {
 		free(hashtable);
-		error(-1, errno, "Error allocating hashtable table");
 		// TODO error
+		//error(-1, errno, "Error allocating hashtable table");
 	}
 	else {
 		// Reset table

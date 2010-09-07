@@ -31,8 +31,6 @@ typedef struct _request_t {
 
 typedef struct _wurfl_t wurfl_t;
 
-const char* program_name = "cwurfl";
-
 wurfl_t* wurfl_init(const char* root, const char** patches);
 
 void wurfl_destroy(wurfl_t* wurfl);

@@ -8,7 +8,6 @@
  *  TODO: Use allocator
  */
 #include "array.h"
-#include "gnulib/error.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -28,11 +27,11 @@ array_t* array_create(uint32_t size) {
 	assert(size>=0);
 
 	if(!(array = malloc(sizeof(array_t)))) {
-		error(COLL_NOMEM, errno, "Error allocating array");
+		//error(COLL_NOMEM, errno, "Error allocating array");
 	}
 
 	if(!(array->data = malloc(sizeof(void*) * size))) {
-		error(COLL_NOMEM, errno, "Error allocating array data");
+		//error(COLL_NOMEM, errno, "Error allocating array data");
 	}
 
 	array->size = size;
@@ -98,7 +97,7 @@ void** array_to_array(array_t* array) {
 	assert(array !=NULL);
 
 	if(!(target = malloc(sizeof(void*) * array->size))) {
-		error(COLL_NOMEM, errno, "Error allocating target array");
+		//error(COLL_NOMEM, errno, "Error allocating target array");
 	}
 
 	memcpy(target, array->data,array->size);
@@ -109,7 +108,7 @@ void** array_to_array(array_t* array) {
 void array_resize(array_t* array, uint32_t size) {
 
 	if(!(array->data = realloc(array->data, size))){
-		error(COLL_NOMEM, errno, "Error reallocating array data");
+		//error(COLL_NOMEM, errno, "Error reallocating array data");
 	}
 
 	array->size = size;

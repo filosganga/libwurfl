@@ -1,7 +1,6 @@
 #include "hashmap.h"
 
 #include "hashtable-impl.h"
-#include "gnulib/error.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -14,7 +13,7 @@
 extern int errno;
 
 typedef struct _hashmap_item_t {
-	void *key;
+	const void *key;
 	void* item;
 	hashmap_t* owner;
 } hashmap_item_t;
@@ -34,7 +33,8 @@ static bool item_eq(const void* litem, const void* ritem) {
 	return lhashmap_item->owner->key_equals(lhashmap_item->key, rhashmap_item->key);
 }
 
-static hashmap_item_t* item_create(hashmap_t* hashmap, void* key, void* item) {
+static hashmap_item_t* item_create(hashmap_t* hashmap, const void* key, const void* item) {
+
 	hashmap_item_t* hashmap_item = malloc(sizeof(hashmap_item_t));
 	hashmap_item->key = key;
 	hashmap_item->item = item;
@@ -52,11 +52,11 @@ static uint32_t item_hash(const void *item) {
 
 typedef struct {
 	coll_predicate_t* key_predicate;
-} evaluate_map_item_data_t;
+} item_evaluate_data_t;
 
-static bool evaluate_map_item(const void* item, void* data) {
+static bool item_evaluate(const void* item, void* data) {
 	const hashmap_item_t* hashmap_item = item;
-	evaluate_map_item_data_t* ev_data = data;
+	item_evaluate_data_t* ev_data = data;
 
 	return ev_data->key_predicate->evaluate(hashmap_item->key, ev_data->key_predicate->data);
 }
@@ -73,6 +73,34 @@ static void item_undupe(void* item, const void* xtra) {
 	free(hashmap_item);
 }
 
+static int item_functor(const void* item, void* data) {
+	hashmap_item_t* hashmap_item = item;
+
+	coll_functor_t* map_functor = data;
+	return map_functor->functor(hashmap_item->item, map_functor->data);
+}
+
+typedef struct {
+	hashmap_t* dest;
+} putall_data_t;
+
+static int putall_functor(const void* item, void* data) {
+
+	hashmap_item_t* hashmap_item = item;
+	putall_data_t* putall_data = data;
+
+	hashmap_item_t* cloned = malloc(sizeof(hashmap_item_t));
+	cloned->key = hashmap_item->key;
+	cloned->item = hashmap_item->item;
+	cloned->owner = putall_data->dest;
+
+	hashmap_item_t* replaced = hashtable_add(putall_data->dest->hashtable,cloned);
+	if(replaced!=NULL) {
+		free(replaced);
+	}
+
+	return 0;
+}
 
 // Interface funcions *****************************************************
 
@@ -94,6 +122,17 @@ hashmap_t* hashmap_create(coll_equals_f key_equals, coll_hash_f key_hash, hashma
 	return map;
 }
 
+void hashmap_destroy(hashmap_t* map, coll_unduper_t* unduper) {
+
+	assert(map!=NULL);
+
+	coll_unduper_t set_unduper;
+	set_unduper.undupe = &item_undupe;
+	set_unduper.xtra = unduper;
+
+	hashtable_destroy(map->hashtable, &set_unduper);
+	free(map);
+}
 
 void* hashmap_put(hashmap_t* map, const void* key, const void* item) {
 
@@ -102,9 +141,29 @@ void* hashmap_put(hashmap_t* map, const void* key, const void* item) {
 	assert(key!=NULL);
 
 	hashmap_item_t* hashmap_item = item_create(map, key, item);
-	hashmap_item_t* replaced = hashtable_add(map->hashtable, hashmap_item);
+	hashmap_item_t* replaced_item = hashtable_add(map->hashtable, hashmap_item);
+
+	void *replaced = NULL;
+	if(replaced_item!=NULL) {
+		replaced = replaced_item->item;
+		free(replaced_item);
+	}
 
 	return replaced;
+}
+
+void hashmap_putall(hashmap_t* dest, const hashmap_t* src) {
+
+	assert(dest!=NULL);
+	assert(src!=NULL);
+
+	putall_data_t putall_data;
+	putall_data.dest = dest;
+
+	coll_functor_t putall;
+	putall.functor = &putall_functor;
+	putall.data = &putall_data;
+	hashtable_foreach(src->hashtable, &putall);
 }
 
 void* hashmap_get(hashmap_t* map, const void* key) {
@@ -132,20 +191,20 @@ void* hashmap_remove(hashmap_t* map, const void* key) {
 	assert(map!=NULL);
 	assert(key!=NULL);
 
-	void* item = NULL;
 
-	hashmap_item_t hashMapItem;
-	hashMapItem.key = key;
-	hashMapItem.owner = map;
+	hashmap_item_t hashmap_item;
+	hashmap_item.key = key;
+	hashmap_item.owner = map;
 
-	hashmap_item_t* removed = hashtable_remove(map->hashtable, &hashMapItem);
+	hashmap_item_t* removed_item = hashtable_remove(map->hashtable, &hashmap_item);
 
-	if(removed){
-		item = removed->item;
-		free(removed);
+	void* removed = NULL;
+	if(removed_item){
+		removed = removed_item->item;
+		free(removed_item);
 	}
 
-	return item;
+	return removed;
 }
 
 uint32_t hashmap_size(hashmap_t* map){
@@ -180,18 +239,6 @@ void hashmap_clear(hashmap_t* map, coll_unduper_t* unduper) {
 	hashtable_clear(map->hashtable, &set_unduper);
 }
 
-void hashmap_destroy(hashmap_t* map, coll_unduper_t* unduper) {
-
-	assert(map!=NULL);
-
-	coll_unduper_t set_unduper;
-	set_unduper.undupe = &item_undupe;
-	set_unduper.xtra = unduper;
-
-	hashtable_destroy(map->hashtable, &set_unduper);
-	free(map);
-}
-
 void* hashmap_find(hashmap_t* map, coll_predicate_t* predicate, uint32_t nth) {
 
 	assert(map!=NULL);
@@ -200,12 +247,12 @@ void* hashmap_find(hashmap_t* map, coll_predicate_t* predicate, uint32_t nth) {
 
 	void* found = NULL;
 
-	evaluate_map_item_data_t ev_map_item_data;
-	ev_map_item_data.key_predicate = predicate;
+	item_evaluate_data_t item_evaluate_data;
+	item_evaluate_data.key_predicate = predicate;
 
 	coll_predicate_t map_predicate;
-	map_predicate.evaluate = &evaluate_map_item;
-	map_predicate.data = &ev_map_item_data;
+	map_predicate.evaluate = &item_evaluate;
+	map_predicate.data = &item_evaluate_data;
 
 	hashmap_item_t* map_item = hashtable_find(map->hashtable, &map_predicate, nth);
 	if(map_item != NULL) {
@@ -215,20 +262,13 @@ void* hashmap_find(hashmap_t* map, coll_predicate_t* predicate, uint32_t nth) {
 	return found;
 }
 
-static int hashtable_functor(const void* item, void* data) {
-	hashmap_item_t* hashmap_item = item;
-
-	coll_functor_t* map_functor = data;
-	return map_functor->functor(hashmap_item->item, map_functor->data);
-}
-
 int hashmap_foreach(hashmap_t* hashmap, coll_functor_t* functor) {
 
 	assert(hashmap!=NULL);
 	assert(functor!=NULL);
 
 	coll_functor_t ht_functor;
-	ht_functor.functor = &hashtable_functor;
+	ht_functor.functor = &item_functor;
 	ht_functor.data = functor;
 
 	return hashtable_foreach(hashmap->hashtable, &ht_functor);

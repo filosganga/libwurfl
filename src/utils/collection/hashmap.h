@@ -28,6 +28,8 @@ void* hashmap_get(hashmap_t* hashmap, const void* key);
 
 void* hashmap_put(hashmap_t* hashmap, const void* key, const void* item);
 
+void hashmap_putall(hashmap_t* dest, const hashmap_t* src);
+
 void* hashmap_remove(hashmap_t* hashmap, const void* key);
 
 void hashmap_clear(hashmap_t* hashmap, coll_unduper_t* unduper);

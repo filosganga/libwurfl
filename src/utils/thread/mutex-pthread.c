@@ -3,8 +3,6 @@
 #include <errno.h>
 #include <time.h>
 
-#include "gnulib/error.h"
-
 #ifdef __linux__
 #include "thread-pthread-impl.h"
 

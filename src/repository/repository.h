@@ -17,9 +17,13 @@ typedef struct _repository_t repository_t;
 
 repository_t* repository_create(const char* root, const char** patches);
 
+void repository_reload(repository_t* repository, const char* root, const char** patches);
+
+void repository_patch(repository_t* repository, const char** patches);
+
 void repository_destroy(repository_t* repository);
 
-device_t* repository_get_device(repository_t* repository, const char* id);
+device_t* repository_get(repository_t* repository, const char* id);
 
 uint32_t repository_size(repository_t* repository);
 
