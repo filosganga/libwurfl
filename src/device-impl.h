@@ -1,7 +1,7 @@
 /*
  * device-impl.h
  *
- *  Created on: 23/ago/2010
+ *  Created on: 19/apr/2011
  *      Author: filippodeluca
  */
 
@@ -9,14 +9,15 @@
 #define DEVICE_IMPL_H_
 
 #include "device.h"
-#include "utils/collection/hashmap.h"
+
+#include "repository.h"
+#include "devicedef.h"
 
 struct _device_t {
-	const char* id;
-	const char* user_agent;
-	hashmap_t* capabilities;
-	device_t* parent;
+	devicedef_t* root;
+	repository_t* repository;
 };
 
+device_t* device_create(repository_t* repository, const devicedef_t* devicedef);
 
 #endif /* DEVICE_IMPL_H_ */

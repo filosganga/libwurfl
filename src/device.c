@@ -7,52 +7,65 @@
 
 #include "device-impl.h"
 
+#include "devicedef.h"
+
+#include "utils/utils.h"
+
 #include <stdlib.h>
+#include <stdio.h>
 #include <strings.h>
 #include <assert.h>
 
-char* device_capability(const device_t* device, const char* name) {
+device_t* device_create(repository_t* repository, const devicedef_t* devicedef) {
+
+	assert(repository!=NULL);
+	assert(devicedef!=NULL);
+
+	device_t* device = malloc(sizeof(device_t));
+	if(device==NULL) {
+		// FIXME add memory check message
+		exit(-1);
+	}
+
+	device->root = devicedef;
+	device->repository = repository;
+
+	return device;
+}
+
+void device_release(device_t* device) {
+
+	free(device);
+}
+
+unsigned char* device_capability(const device_t* device, const unsigned char* name) {
 
 	assert(device!=NULL);
 	assert(name!=NULL);
-	assert(strlen(name)>0);
 
-	device_t* current = device;
-	const char* value = NULL;
-	while((value = hashmap_get(current->capabilities, name)) == NULL && current->parent != NULL) {
-		current = current->parent;
-	}
+	devicedef_t* current = device->root;
 
-	if(value == NULL) {
-		// Error
+	unsigned char* value = NULL;
+
+	while((value = hashmap_get(current->capabilities, name)) == NULL && current->fall_back != NULL) {
+		current = repository_get(device->repository, current->fall_back);
 	}
 
 	return value;
 }
 
-char* device_id(const device_t* device) {
+unsigned char* device_id(const device_t* device) {
 
 	assert(device!=NULL);
 
-	return device->id;
+	return device->root->id;
 }
 
-char* device_user_agent(const device_t* device) {
+unsigned char* device_user_agent(const device_t* device) {
 
 	assert(device!=NULL);
 
-	return device->user_agent;
-}
-
-void device_patch(device_t* patched, const device_t* source, const device_t* patching) {
-
-	// It is not relevant
-	patched->id = source->id;
-	patched->user_agent = source->user_agent;
-	patched->parent = patching->parent;
-
-	hashmap_putall(patched->capabilities, source->capabilities);
-	hashmap_putall(patched->capabilities, patching->capabilities);
+	return device->root->user_agent;
 }
 
 int device_cmp(const void* left, const void* right) {
@@ -63,7 +76,7 @@ int device_cmp(const void* left, const void* right) {
 	device_t* ldevice = left;
 	device_t* rdevice = right;
 
-	return strcmp(ldevice->id, rdevice->id);
+	return strcmp(ldevice->root->id, rdevice->root->id);
 }
 
 uint32_t device_hash(const void* item) {
@@ -72,7 +85,7 @@ uint32_t device_hash(const void* item) {
 
 	device_t* device = item;
 
-	return string_hash(device->id);
+	return string_hash(device->root->id);
 }
 
 bool device_eq(const void* left, const void* right) {
@@ -80,9 +93,8 @@ bool device_eq(const void* left, const void* right) {
 	assert(left!=NULL);
 	assert(right!=NULL);
 
-
 	device_t* ldevice = left;
 	device_t* rdevice = right;
 
-	return string_eq(ldevice->id, rdevice->id);
+	return string_eq(ldevice->root->id, rdevice->root->id);
 }

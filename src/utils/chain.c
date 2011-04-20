@@ -7,10 +7,10 @@
 
 #include "chain.h"
 
-#include "collection/linkedlist.h"
-#include "collection/utils.h"
+#include "linkedlist.h"
+#include "utils.h"
 
-#include "assert.h"
+#include <assert.h>
 
 struct _chain_t {
 	linkedlist_t* handlers;
@@ -26,7 +26,7 @@ chain_t* chain_create() {
 
 void chain_destroy(chain_t* chain) {
 
-	linkedlist_destroy(chain->handlers, NULL);
+	linkedlist_destroy(chain->handlers, NULL, NULL);
 	free(chain);
 }
 

@@ -35,6 +35,6 @@ wurfl_t* wurfl_init(const char* root, const char** patches);
 
 void wurfl_destroy(wurfl_t* wurfl);
 
-device_t* wurfl_match(const wurfl_t* wurfl, const request_t request);
+device_t* wurfl_match(const wurfl_t* wurfl, const char* user_agent);
 
 #endif /* WURFL_H_ */

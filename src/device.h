@@ -13,11 +13,13 @@
 
 typedef struct _device_t device_t;
 
-char* device_id(const device_t* device);
+void device_destroy(device_t* device);
 
-char* device_user_agent(const device_t* device);
+unsigned char* device_id(const device_t* device);
 
-char* device_capability(const device_t* device, const char* name);
+unsigned char* device_user_agent(const device_t* device);
+
+unsigned char* device_capability(const device_t* device, const unsigned char* name);
 
 int device_cmp(const void* ldevice, const void* rdevice);
 

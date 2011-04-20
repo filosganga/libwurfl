@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2011. Filippo De Luca
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- $Id: root.xml 521 2010-09-14 08:49:17Z asres.fantayeneh $ -->
+<wurfl>
+	<version>
+		<ver>Test Wireless Universal Resource File v_1.0.0.0</ver>
+		<last_updated>May 8, 2008</last_updated>
+		<official_url>http://wurfl.sourceforge.net/</official_url>
+		<maintainers>
+			<maintainer name="Luca Passani" email="passani@eunet.no"
+				home_page="http://www.admob.com" />
+		</maintainers>
+		<authors>
+			<author name="Luca Passani" email="passani@eunet.no"
+				home_page="http://www.admob.com" />
+		</authors>
+		<contributors>
+			<contributor name="Laszlo Nadai" email="lnadai@wlbiz.com" />
+		</contributors>
+		<statement>
+			WURFL Root file
+		</statement>
+	</version>
+	<devices>
+		<!-- "user_agent" is a subset of the user_agent string -->
+		<!-- "fall_back" uses (unique) ID attribute to track down more generic device to delegate to -->
+		<!-- "id" is a unique ID for each device. ID is a mnemonic string decided by Author -->
+		<device fall_back="root" id="generic" user_agent="" specific="true">
+			<group id="group_a">
+				<capability name="capability_a" value="a" />
+				<capability name="capability_b" value="b" />
+				<capability name="capability_c" value="c" />
+			</group>
+			<group id="group_b">
+				<capability name="capability_d" value="d" />
+				<capability name="capability_e" value="e" />
+				<capability name="capability_f" value="f" />
+			</group>
+			<group id="group_c">
+				<capability name="capability_g" value="g" />
+				<capability name="capability_h" value="h" />
+			</group>
+		</device>
+
+
+		<device fall_back="generic" id="device_a" user_agent="DEVICE A">
+			<group id="group_a">
+				<capability name="capability_a" value="device_a_a" />
+			</group>
+		</device>
+
+		<device fall_back="generic" id="device_b" user_agent="DEVICE B">
+			<group id="group_b">
+				<capability name="capability_e" value="device_b_e" />
+			</group>
+		</device>
+
+		<device fall_back="generic" id="device_c" user_agent="DEVICE C">
+			<group id="group_c">
+				<capability name="capability_h" value="device_c_h" />
+			</group>
+		</device>
+		
+		<device fall_back="device_a" id="device_a_a" user_agent="DEVICE A A">
+			<group id="group_b">
+				<capability name="capability_d" value="device_a_a_d" />
+			</group>
+		</device>
+		
+		<device fall_back="device_a" id="device_a_b" user_agent="DEVICE A B">
+			<group id="group_a">
+				<capability name="capability_b" value="device_a_b_b" />
+			</group>
+		</device>
+		
+		<device fall_back="device_a_b" id="device_a_b_a" user_agent="DEVICE A B A">
+			<group id="group_c">
+				<capability name="capability_h" value="device_a_b_a_h" />
+			</group>
+		</device>
+
+	</devices>
+</wurfl>
