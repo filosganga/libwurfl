@@ -172,11 +172,9 @@ device_t* wurfl_match(const wurfl_t* wurfl, const wchar_t *user_agent, const cha
 
 		best_match_t best_match;
 		match(needle, wurfl->devices, wurfl->size, &best_match);
-		//free(needle);
 
 		device = device_create(wurfl->repository, best_match.device);
 	}
-	free(needle);
 
 	return device;
 }
