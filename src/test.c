@@ -49,7 +49,7 @@ int test_wurfl() {
 
 	wurfl_t* wurfl = wurfl_init(main, patches);
 
-	device_t* device = wurfl_match(wurfl, "DEVICE A A");
+	device_t* device = wurfl_match(wurfl, "DEVICE A A", "ASCII");
 	if(device!=NULL) {
 		fprintf(stderr, "Matched Device: %s\n", device_id(device));
 	}

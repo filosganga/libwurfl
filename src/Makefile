@@ -62,7 +62,7 @@ am_libwurfl_la_OBJECTS = libwurfl_la-wurfl.lo libwurfl_la-device.lo \
 	libwurfl_la-sax2.lo libwurfl_la-chain.lo \
 	libwurfl_la-functors.lo libwurfl_la-hashmap.lo \
 	libwurfl_la-hashtable.lo libwurfl_la-linkedlist.lo \
-	libwurfl_la-logger.lo libwurfl_la-utils.lo
+	libwurfl_la-error.lo libwurfl_la-utils.lo
 libwurfl_la_OBJECTS = $(am_libwurfl_la_OBJECTS)
 libwurfl_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -124,7 +124,7 @@ INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LD = /usr/libexec/gcc/i686-apple-darwin10/4.2.1/ld
 LDFLAGS = 
 LIBOBJS =  ${LIBOBJDIR}error$U.o
-LIBS = -lxml2 
+LIBS = -liconv -lxml2 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIPO = lipo
 LN_S = ln -s
@@ -203,8 +203,7 @@ top_srcdir = ..
 INCLUDES = -I$(top_srcdir)
 nobase_include_HEADERS = \
 	wurfl.h \
-	device.h \
-	utils/logger.h
+	device.h 
 
 lib_LTLIBRARIES = libwurfl.la
 libwurfl_la_SOURCES = \
@@ -218,7 +217,7 @@ libwurfl_la_SOURCES = \
 	utils/hashmap.c \
 	utils/hashtable.c \
 	utils/linkedlist.c \
-	utils/logger.c \
+	utils/error.c \
 	utils/utils.c 
 
 libwurfl_la_LDFLAGS = -version-info 1:0:0
@@ -313,11 +312,11 @@ distclean-compile:
 include ./$(DEPDIR)/libwurfl_la-chain.Plo
 include ./$(DEPDIR)/libwurfl_la-device.Plo
 include ./$(DEPDIR)/libwurfl_la-devicedef.Plo
+include ./$(DEPDIR)/libwurfl_la-error.Plo
 include ./$(DEPDIR)/libwurfl_la-functors.Plo
 include ./$(DEPDIR)/libwurfl_la-hashmap.Plo
 include ./$(DEPDIR)/libwurfl_la-hashtable.Plo
 include ./$(DEPDIR)/libwurfl_la-linkedlist.Plo
-include ./$(DEPDIR)/libwurfl_la-logger.Plo
 include ./$(DEPDIR)/libwurfl_la-repository.Plo
 include ./$(DEPDIR)/libwurfl_la-sax2.Plo
 include ./$(DEPDIR)/libwurfl_la-utils.Plo
@@ -415,12 +414,12 @@ libwurfl_la-linkedlist.lo: utils/linkedlist.c
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libwurfl_la-linkedlist.lo `test -f 'utils/linkedlist.c' || echo '$(srcdir)/'`utils/linkedlist.c
 
-libwurfl_la-logger.lo: utils/logger.c
-	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libwurfl_la-logger.lo -MD -MP -MF $(DEPDIR)/libwurfl_la-logger.Tpo -c -o libwurfl_la-logger.lo `test -f 'utils/logger.c' || echo '$(srcdir)/'`utils/logger.c
-	mv -f $(DEPDIR)/libwurfl_la-logger.Tpo $(DEPDIR)/libwurfl_la-logger.Plo
-#	source='utils/logger.c' object='libwurfl_la-logger.lo' libtool=yes \
+libwurfl_la-error.lo: utils/error.c
+	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libwurfl_la-error.lo -MD -MP -MF $(DEPDIR)/libwurfl_la-error.Tpo -c -o libwurfl_la-error.lo `test -f 'utils/error.c' || echo '$(srcdir)/'`utils/error.c
+	mv -f $(DEPDIR)/libwurfl_la-error.Tpo $(DEPDIR)/libwurfl_la-error.Plo
+#	source='utils/error.c' object='libwurfl_la-error.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libwurfl_la-logger.lo `test -f 'utils/logger.c' || echo '$(srcdir)/'`utils/logger.c
+#	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libwurfl_la-error.lo `test -f 'utils/error.c' || echo '$(srcdir)/'`utils/error.c
 
 libwurfl_la-utils.lo: utils/utils.c
 	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libwurfl_la-utils.lo -MD -MP -MF $(DEPDIR)/libwurfl_la-utils.Tpo -c -o libwurfl_la-utils.lo `test -f 'utils/utils.c' || echo '$(srcdir)/'`utils/utils.c

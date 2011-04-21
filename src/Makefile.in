@@ -62,7 +62,7 @@ am_libwurfl_la_OBJECTS = libwurfl_la-wurfl.lo libwurfl_la-device.lo \
 	libwurfl_la-sax2.lo libwurfl_la-chain.lo \
 	libwurfl_la-functors.lo libwurfl_la-hashmap.lo \
 	libwurfl_la-hashtable.lo libwurfl_la-linkedlist.lo \
-	libwurfl_la-logger.lo libwurfl_la-utils.lo
+	libwurfl_la-error.lo libwurfl_la-utils.lo
 libwurfl_la_OBJECTS = $(am_libwurfl_la_OBJECTS)
 libwurfl_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -203,8 +203,7 @@ top_srcdir = @top_srcdir@
 INCLUDES = -I$(top_srcdir)
 nobase_include_HEADERS = \
 	wurfl.h \
-	device.h \
-	utils/logger.h
+	device.h 
 
 lib_LTLIBRARIES = libwurfl.la
 libwurfl_la_SOURCES = \
@@ -218,7 +217,7 @@ libwurfl_la_SOURCES = \
 	utils/hashmap.c \
 	utils/hashtable.c \
 	utils/linkedlist.c \
-	utils/logger.c \
+	utils/error.c \
 	utils/utils.c 
 
 libwurfl_la_LDFLAGS = -version-info 1:0:0
@@ -313,11 +312,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-chain.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-device.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-devicedef.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-error.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-functors.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-hashmap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-hashtable.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-linkedlist.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-logger.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-repository.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-sax2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-utils.Plo@am__quote@
@@ -415,12 +414,12 @@ libwurfl_la-linkedlist.lo: utils/linkedlist.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libwurfl_la-linkedlist.lo `test -f 'utils/linkedlist.c' || echo '$(srcdir)/'`utils/linkedlist.c
 
-libwurfl_la-logger.lo: utils/logger.c
-@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libwurfl_la-logger.lo -MD -MP -MF $(DEPDIR)/libwurfl_la-logger.Tpo -c -o libwurfl_la-logger.lo `test -f 'utils/logger.c' || echo '$(srcdir)/'`utils/logger.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libwurfl_la-logger.Tpo $(DEPDIR)/libwurfl_la-logger.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='utils/logger.c' object='libwurfl_la-logger.lo' libtool=yes @AMDEPBACKSLASH@
+libwurfl_la-error.lo: utils/error.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libwurfl_la-error.lo -MD -MP -MF $(DEPDIR)/libwurfl_la-error.Tpo -c -o libwurfl_la-error.lo `test -f 'utils/error.c' || echo '$(srcdir)/'`utils/error.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libwurfl_la-error.Tpo $(DEPDIR)/libwurfl_la-error.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='utils/error.c' object='libwurfl_la-error.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libwurfl_la-logger.lo `test -f 'utils/logger.c' || echo '$(srcdir)/'`utils/logger.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libwurfl_la-error.lo `test -f 'utils/error.c' || echo '$(srcdir)/'`utils/error.c
 
 libwurfl_la-utils.lo: utils/utils.c
 @am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libwurfl_la-utils.lo -MD -MP -MF $(DEPDIR)/libwurfl_la-utils.Tpo -c -o libwurfl_la-utils.lo `test -f 'utils/utils.c' || echo '$(srcdir)/'`utils/utils.c

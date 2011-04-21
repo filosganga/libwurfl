@@ -10,7 +10,7 @@
 #include "utils/utils.h"
 #include "utils/hashmap.h"
 #include "utils/hashtable.h"
-#include "utils/logger.h"
+#include "utils/error.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <errno.h>
 
 #include <libxml/encoding.h>
 #include <libxml/xmlversion.h>
@@ -42,6 +43,8 @@
 #define ATTR_FALL_BACK BAD_CAST("fall_back")
 #define ATTR_ACTUAL_DEVICE_ROOT BAD_CAST("actual_device_root")
 
+extern int errno;
+
 typedef struct {
 	uint32_t size;
 	resource_type_e type;
@@ -51,18 +54,9 @@ typedef struct {
 	hashtable_t* strings;
 	hashmap_t* devices;
 
-	logger_t* logger;
-
 } parse_context_t;
 
 static xmlChar* create_string(hashtable_t* strings, const xmlChar* string) {
-
-//	if(!xmlCheckUTF8(string)) {
-//		exit(-1);
-//	}
-//
-//	char* duped = malloc(sizeof(char) * (xmlStrlen(string) + 1));
-//	strcpy(duped, string);
 
 	return xmlStrdup(string);
 }
@@ -97,13 +91,14 @@ static xmlChar* get_attribute(parse_context_t* context, int nb_attributes,	const
 static void start_capability(parse_context_t* context, int nb_attributes, const xmlChar** attributes) {
 
 	const xmlChar* name = get_attribute(context, nb_attributes, attributes, ATTR_NAME);
-	const xmlChar* value = get_attribute(context, nb_attributes, attributes, ATTR_VALUE);
 
-	// TODO check not null
-
-	//logger_debug(context->logger, __FILE__, __LINE__, "Adding capability: %s:%s", name, value);
-
-	hashmap_put(context->current_devicedef->capabilities, name, value);
+	if(name) {
+		const xmlChar* value = get_attribute(context, nb_attributes, attributes, ATTR_VALUE);
+		hashmap_put(context->current_devicedef->capabilities, name, value);
+	}
+	else {
+		error(0,0,"ignore null capability name in device %s", context->current_devicedef->id);
+	}
 }
 
 static void end_capability(parse_context_t* context) {
@@ -114,11 +109,11 @@ static void start_device(parse_context_t* context, int nb_attributes, const xmlC
 
 	devicedef_t* devicedef = malloc(sizeof(devicedef_t));
 	if(devicedef==NULL) {
-		exit(-1);
+		error(1, errno, "error allocating device");
 	}
+
 	hashmap_options_t caps_opts = {400, .75f};
 	devicedef->capabilities = hashmap_create(&string_eq, &string_hash, &caps_opts);
-
 
 	devicedef->id = get_attribute(context, nb_attributes, attributes, ATTR_ID);
 	devicedef->user_agent = get_attribute(context, nb_attributes, attributes, ATTR_USER_AGENT);
@@ -266,7 +261,10 @@ int resource_parse(resource_data_t* resource_data, const char* path, hashtable_t
 	xmlSAXHandler saxHandler;
 	memset(&saxHandler, 0, sizeof(saxHandler));
 
-	xmlSAXVersion(&saxHandler, 2);
+	if(xmlSAXVersion(&saxHandler, 2)!=0){
+		error(2,errno,"error initilizing SAX2 parser");
+	}
+
 	saxHandler.startDocument = &start_document;
 	saxHandler.endDocument = &end_document;
 
@@ -291,11 +289,8 @@ int resource_parse(resource_data_t* resource_data, const char* path, hashtable_t
 
 	int sax_error = xmlSAXUserParseFile(&saxHandler, &context, path);
 	if(sax_error) {
-		exit(sax_error);
+		error(2, "SAX error: %d parsing file: %s", sax_error, path);
 	}
-
-	fprintf(stderr, "sax2.c: Parsed %d devices\n", hashmap_size(resource_data->devices));
-
 
 	resource_data->version = strdup("TBD");
 	resource_data->type = context.type;

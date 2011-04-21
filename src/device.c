@@ -8,13 +8,16 @@
 #include "device-impl.h"
 
 #include "devicedef.h"
-
+#include "utils/error.h"
 #include "utils/utils.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <strings.h>
 #include <assert.h>
+#include <errno.h>
+
+extern int errno;
 
 device_t* device_create(repository_t* repository, const devicedef_t* devicedef) {
 
@@ -23,8 +26,7 @@ device_t* device_create(repository_t* repository, const devicedef_t* devicedef) 
 
 	device_t* device = malloc(sizeof(device_t));
 	if(device==NULL) {
-		// FIXME add memory check message
-		exit(-1);
+		error(1, errno, "error allocating device");
 	}
 
 	device->root = devicedef;

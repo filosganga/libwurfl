@@ -12,6 +12,7 @@
 #include "devicedef.h"
 #include "utils/utils.h"
 #include "utils/functors.h"
+#include "utils/error.h"
 
 #include <libxml/xmlstring.h>
 #include <stdio.h>
@@ -19,6 +20,10 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <math.h>
+#include <iconv.h>
+#include <errno.h>
+
+extern int errno;
 
 struct _wurfl_t {
 	repository_t* repository;
@@ -143,16 +148,35 @@ bool match(const xmlChar* needle, devicedef_t** candidates, size_t candidates_si
 	return matched;
 }
 
-device_t* wurfl_match(const wurfl_t* wurfl, const char* user_agent) {
+device_t* wurfl_match(const wurfl_t* wurfl, const wchar_t *user_agent, const char *encoding) {
 
 	device_t* device = NULL;
 
-	xmlChar* needle = xmlCharStrdup(user_agent);
-	best_match_t best_match;
-	match(needle, wurfl->devices, wurfl->size, &best_match);
-	free(needle);
+	size_t user_agent_len = wcslen(user_agent);
+	size_t inbytesleft = user_agent_len * sizeof(wchar_t);
 
-	device = device_create(wurfl->repository, best_match.device);
+	size_t outbytesleft = 255 * sizeof(xmlChar);
+	xmlChar* needle = malloc(outbytesleft);
+	if(needle==NULL) {
+		error(-1, errno, "error allocating user_agent UTF-8 string");
+	}
+
+	iconv_t cd = iconv_open("UTF-8", encoding);
+	if(cd == -1) {
+		error(0, errno, "iconv does not support %s encoding", encoding);
+	}
+	else {
+
+		size_t result = iconv(cd, (const char**)&user_agent, &inbytesleft, (char**)&needle, &outbytesleft);
+		iconv_close(cd);
+
+		best_match_t best_match;
+		match(needle, wurfl->devices, wurfl->size, &best_match);
+		//free(needle);
+
+		device = device_create(wurfl->repository, best_match.device);
+	}
+	free(needle);
 
 	return device;
 }

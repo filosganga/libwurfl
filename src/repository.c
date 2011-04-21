@@ -13,7 +13,7 @@
 #include "utils/hashtable.h"
 #include "utils/functors.h"
 #include "utils/utils.h"
-#include "utils/logger.h"
+#include "utils/error.h"
 
 #include <libxml/xmlstring.h>
 
@@ -23,12 +23,14 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
+
+extern int errno;
 
 struct _repository_t {
 	const char version[255];
 	hashtable_t* strings;
 	hashmap_t* devices;
-	logger_t* logger;
 };
 
 // Functors
@@ -52,13 +54,11 @@ repository_t* repository_create(const char* root, const char** patches) {
 
 	repository_t* repository = malloc(sizeof(repository_t));
 	if(!repository) {
-		// FIXME Error message
-		exit(-1);
+		error(1,errno, "error allocating repository");
 	}
 
 	hashtable_options_t strings_opts = {1000, 1.5f};
 	repository->strings = hashtable_create(&string_eq, &string_hash, &strings_opts);
-	repository->logger = logger_init();
 
 	init_devices(repository, root);
 	repository_patch(repository, patches);
@@ -71,7 +71,6 @@ void repository_destroy(repository_t* repository) {
 	hashmap_destroy(repository->devices, &devicedef_undupe, NULL);
 	hashtable_destroy(repository->strings, &coll_default_unduper, NULL);
 
-	logger_destroy(repository->logger);
 
 	free(repository);
 }

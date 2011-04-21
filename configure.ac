@@ -10,8 +10,6 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign])
 LT_INIT
 
-AC_INCLUDES_DEFAULT([/usr/include /usr/local/include])
-
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
@@ -22,7 +20,7 @@ AC_PROG_LIBTOOL
 AC_SEARCH_LIBS([xmlCleanupParser],[xml xml2])
 AC_SEARCH_LIBS([xmlSAXVersion],[xml xml2])
 AC_SEARCH_LIBS([xmlSAXUserParseFile],[xml xml2])
-AC_SEARCH_LIBS([min],[m])
+AC_SEARCH_LIBS([iconv_open],[iconv])
 
 # Checks for header files.
 AC_HEADER_STDC

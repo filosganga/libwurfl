@@ -25,6 +25,8 @@
 
 #include "device.h"
 
+#include <wchar.h>
+
 typedef struct _request_t {
 	const char* user_agent;
 } request_t;
@@ -35,6 +37,6 @@ wurfl_t* wurfl_init(const char* root, const char** patches);
 
 void wurfl_destroy(wurfl_t* wurfl);
 
-device_t* wurfl_match(const wurfl_t* wurfl, const char* user_agent);
+device_t* wurfl_match(const wurfl_t* wurfl, const wchar_t* user_agent, const char* encoding);
 
 #endif /* WURFL_H_ */

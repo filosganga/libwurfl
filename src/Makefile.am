@@ -2,8 +2,7 @@ INCLUDES = -I$(top_srcdir)
 
 nobase_include_HEADERS =  \
 	wurfl.h \
-	device.h \
-	utils/logger.h
+	device.h 
 	
 lib_LTLIBRARIES = libwurfl.la
 libwurfl_la_SOURCES = \
@@ -17,7 +16,7 @@ libwurfl_la_SOURCES = \
 	utils/hashmap.c \
 	utils/hashtable.c \
 	utils/linkedlist.c \
-	utils/logger.c \
+	utils/error.c \
 	utils/utils.c 
 	
 libwurfl_la_LDFLAGS = -version-info 1:0:0
