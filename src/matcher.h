@@ -16,33 +16,18 @@
 
 /* Written by Filippo De Luca <me@filippodeluca.com>.  */
 
+#ifndef MATCHER_H_
+#define MATCHER_H_
+
+#include "repository.h"
 #include "devicedef.h"
 
-#include <utils/utils.h>
+typedef struct _matcher_t matcher_t;
 
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+matcher_t* matcher_init(repository_t* repo);
 
-int devicedef_cmp(const void* litem, const void* ritem) {
+void matcher_destroy(matcher_t* matcher);
 
-	devicedef_t* ldevicedef = (devicedef_t*)litem;
-	devicedef_t* rdevicedef = (devicedef_t*)ritem;
+devicedef_t* matcher_match(matcher_t*, const char* user_agent);
 
-	return strcmp(ldevicedef->id, rdevicedef->id);
-}
-
-uint32_t devicedef_hash(const void* item) {
-
-	devicedef_t* devicedef = (devicedef_t*)item;
-
-	return string_hash(devicedef->id);
-}
-
-bool devicedef_eq(const void* litem, const void* ritem) {
-
-	devicedef_t* ldevicedef = (devicedef_t*)litem;
-	devicedef_t* rdevicedef = (devicedef_t*)ritem;
-
-	return strcmp(ldevicedef->id, rdevicedef->id)==0;
-}
+#endif /* MATCHER_H_ */

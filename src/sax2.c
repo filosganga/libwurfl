@@ -1,9 +1,21 @@
 /*
- * handler.c
+ * Copyright 2011 ff-dev.org
  *
- *  Created on: 23-mar-2009
- *      Author: filosganga
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
+/* Written by Filippo De Luca <me@filippodeluca.com>.  */
+
 #include "parser.h"
 
 #include "devicedef.h"
@@ -80,13 +92,8 @@ static char* create_string(const xmlChar* string, parse_context_t* context) {
 	if(converted == -1) {
 		error(2, errno, "error converting string");
 	}
-	else {
-		error(0,0,"converted %ld chars of %ld", converted, inputlen);
-	}
 
 	iconv_close(cd);
-
-	error(0,0, "string %s converted to %s", string, tmp);
 
 	char *output = malloc(sizeof(char) * (strlen(tmp) + 1));
 	if(!output) {

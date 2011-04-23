@@ -22,3 +22,6 @@ stamp-h1
 *.log
 *.cache
 *.status
+
+src/test
+src/test-static

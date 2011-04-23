@@ -10,6 +10,7 @@ libwurfl_la_SOURCES = \
 	device.c \
 	devicedef.c \
 	repository.c \
+	matcher.c \
 	sax2.c \
 	utils/chain.c \
 	utils/functors.c \

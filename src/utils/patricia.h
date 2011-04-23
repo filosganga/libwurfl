@@ -16,40 +16,27 @@
 
 /* Written by Filippo De Luca <me@filippodeluca.com>.  */
 
-#ifndef CHAIN_H_
-#define CHAIN_H_
+#ifndef PATRICIA_H_
+#define PATRICIA_H_
+
+#include "utils.h"
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
-typedef enum {
-	CHN_FINISHED=1,
-	CHN_CONTINUE=0
-} handler_result_t;
+typedef struct _trie_t trie_t;
 
-typedef handler_result_t (*handler_execute_f)(void* context, void* data);
+trie_t* trie_init();
 
-typedef struct {
-	handler_execute_f execute;
-	void* data;
-} handler_t;
+void trie_destroy(trie_t* trie, coll_unduper_f undupe, void* undupe_data);
 
-/** The chain_t type */
-typedef struct _chain_t chain_t;
+void trie_put(trie_t* trie, const void* key, const void* value);
 
-/**
- * This function create a chain using given allocator
- *
- * @param allocator allocator_t used to allocate chain.
- */
-chain_t* chain_create();
+void* trie_get(trie_t* trie, const void* key);
 
-void chain_destroy(chain_t* chain);
+void* trie_search(trie_t* trie, const void* key);
 
-void chain_add_handler(chain_t* chain, handler_t* handler);
+bool trie_traverse(trie_t* trie, coll_functor_f functor, void* functor_data);
 
-void chain_remove_handler(chain_t* chain, handler_t* handler);
-
-int chain_execute(chain_t* chain, void* context);
-
-#endif /* CHAIN_H_ */
+#endif /* PATRICIA_H_ */
