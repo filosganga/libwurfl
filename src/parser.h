@@ -16,33 +16,20 @@
 
 /* Written by Filippo De Luca <me@filippodeluca.com>.  */
 
-#include "devicedef.h"
+#ifndef PARSER_H_
+#define PARSER_H_
 
-#include <utils/utils.h>
+#include "utils/hashmap.h"
+#include "utils/hashtable.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+typedef enum {ROOT, PATCH} resource_type_e;
 
-int devicedef_cmp(const void* litem, const void* ritem) {
+typedef struct {
+	char* version;
+	hashmap_t* devices;
+	resource_type_e type;
+} resource_data_t;
 
-	devicedef_t* ldevicedef = (devicedef_t*)litem;
-	devicedef_t* rdevicedef = (devicedef_t*)ritem;
+int parser_parse(const char* path, hashtable_t* strings, resource_data_t* resource_data);
 
-	return strcmp(ldevicedef->id, rdevicedef->id);
-}
-
-uint32_t devicedef_hash(const void* item) {
-
-	devicedef_t* devicedef = (devicedef_t*)item;
-
-	return string_hash(devicedef->id);
-}
-
-bool devicedef_eq(const void* litem, const void* ritem) {
-
-	devicedef_t* ldevicedef = (devicedef_t*)litem;
-	devicedef_t* rdevicedef = (devicedef_t*)ritem;
-
-	return strcmp(ldevicedef->id, rdevicedef->id)==0;
-}
+#endif /* PARSER_H_ */

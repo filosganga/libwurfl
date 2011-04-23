@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Filippo De Luca
+ * Copyright 2011 ff-dev.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-/*
- * wurfl.h
- *
- *  Created on: 23-mar-2009
- *      Author: Filippo De Luca
- */
+/* Written by Filippo De Luca <me@filippodeluca.com>.  */
+
 #ifndef WURFL_H_
 #define WURFL_H_
 
 #include "device.h"
-
-#include <wchar.h>
 
 typedef struct _request_t {
 	const char* user_agent;
@@ -33,10 +27,20 @@ typedef struct _request_t {
 
 typedef struct _wurfl_t wurfl_t;
 
+/**
+ * This function init the wurfl with the given main file and patches
+ */
 wurfl_t* wurfl_init(const char* root, const char** patches);
 
+/**
+ * This function destroy the wurfl
+ */
 void wurfl_destroy(wurfl_t* wurfl);
 
-device_t* wurfl_match(const wurfl_t* wurfl, const wchar_t* user_agent, const char* encoding);
+/**
+ * This is the match function
+ * @user_agent must be != NULL
+ */
+device_t* wurfl_match(const wurfl_t* wurfl, const char* user_agent);
 
 #endif /* WURFL_H_ */

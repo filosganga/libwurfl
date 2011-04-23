@@ -17,10 +17,6 @@
 
 /* Written by David MacKenzie <djm@gnu.ai.mit.edu>.  */
 
-#if !_LIBC
-# include <config.h>
-#endif
-
 #include "error.h"
 
 #include <stdarg.h>

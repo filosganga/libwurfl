@@ -2,6 +2,8 @@ Exe
 Release
 Debug
 *.o
+*.lo
+*.la
 .DS_Store
 *.~
 
@@ -20,3 +22,6 @@ stamp-h1
 *.log
 *.cache
 *.status
+
+src/test
+src/test-static

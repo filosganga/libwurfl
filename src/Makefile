@@ -59,9 +59,10 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libwurfl_la_LIBADD =
 am_libwurfl_la_OBJECTS = libwurfl_la-wurfl.lo libwurfl_la-device.lo \
 	libwurfl_la-devicedef.lo libwurfl_la-repository.lo \
-	libwurfl_la-sax2.lo libwurfl_la-chain.lo \
-	libwurfl_la-functors.lo libwurfl_la-hashmap.lo \
-	libwurfl_la-hashtable.lo libwurfl_la-linkedlist.lo \
+	libwurfl_la-matcher.lo libwurfl_la-sax2.lo \
+	libwurfl_la-chain.lo libwurfl_la-functors.lo \
+	libwurfl_la-hashmap.lo libwurfl_la-hashtable.lo \
+	libwurfl_la-linkedlist.lo libwurfl_la-patricia.lo \
 	libwurfl_la-error.lo libwurfl_la-utils.lo
 libwurfl_la_OBJECTS = $(am_libwurfl_la_OBJECTS)
 libwurfl_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
@@ -211,12 +212,14 @@ libwurfl_la_SOURCES = \
 	device.c \
 	devicedef.c \
 	repository.c \
+	matcher.c \
 	sax2.c \
 	utils/chain.c \
 	utils/functors.c \
 	utils/hashmap.c \
 	utils/hashtable.c \
 	utils/linkedlist.c \
+	utils/patricia.c \
 	utils/error.c \
 	utils/utils.c 
 
@@ -317,6 +320,8 @@ include ./$(DEPDIR)/libwurfl_la-functors.Plo
 include ./$(DEPDIR)/libwurfl_la-hashmap.Plo
 include ./$(DEPDIR)/libwurfl_la-hashtable.Plo
 include ./$(DEPDIR)/libwurfl_la-linkedlist.Plo
+include ./$(DEPDIR)/libwurfl_la-matcher.Plo
+include ./$(DEPDIR)/libwurfl_la-patricia.Plo
 include ./$(DEPDIR)/libwurfl_la-repository.Plo
 include ./$(DEPDIR)/libwurfl_la-sax2.Plo
 include ./$(DEPDIR)/libwurfl_la-utils.Plo
@@ -372,6 +377,13 @@ libwurfl_la-repository.lo: repository.c
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libwurfl_la-repository.lo `test -f 'repository.c' || echo '$(srcdir)/'`repository.c
 
+libwurfl_la-matcher.lo: matcher.c
+	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libwurfl_la-matcher.lo -MD -MP -MF $(DEPDIR)/libwurfl_la-matcher.Tpo -c -o libwurfl_la-matcher.lo `test -f 'matcher.c' || echo '$(srcdir)/'`matcher.c
+	mv -f $(DEPDIR)/libwurfl_la-matcher.Tpo $(DEPDIR)/libwurfl_la-matcher.Plo
+#	source='matcher.c' object='libwurfl_la-matcher.lo' libtool=yes \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libwurfl_la-matcher.lo `test -f 'matcher.c' || echo '$(srcdir)/'`matcher.c
+
 libwurfl_la-sax2.lo: sax2.c
 	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libwurfl_la-sax2.lo -MD -MP -MF $(DEPDIR)/libwurfl_la-sax2.Tpo -c -o libwurfl_la-sax2.lo `test -f 'sax2.c' || echo '$(srcdir)/'`sax2.c
 	mv -f $(DEPDIR)/libwurfl_la-sax2.Tpo $(DEPDIR)/libwurfl_la-sax2.Plo
@@ -413,6 +425,13 @@ libwurfl_la-linkedlist.lo: utils/linkedlist.c
 #	source='utils/linkedlist.c' object='libwurfl_la-linkedlist.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libwurfl_la-linkedlist.lo `test -f 'utils/linkedlist.c' || echo '$(srcdir)/'`utils/linkedlist.c
+
+libwurfl_la-patricia.lo: utils/patricia.c
+	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libwurfl_la-patricia.lo -MD -MP -MF $(DEPDIR)/libwurfl_la-patricia.Tpo -c -o libwurfl_la-patricia.lo `test -f 'utils/patricia.c' || echo '$(srcdir)/'`utils/patricia.c
+	mv -f $(DEPDIR)/libwurfl_la-patricia.Tpo $(DEPDIR)/libwurfl_la-patricia.Plo
+#	source='utils/patricia.c' object='libwurfl_la-patricia.lo' libtool=yes \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libwurfl_la-patricia.lo `test -f 'utils/patricia.c' || echo '$(srcdir)/'`utils/patricia.c
 
 libwurfl_la-error.lo: utils/error.c
 	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libwurfl_la-error.lo -MD -MP -MF $(DEPDIR)/libwurfl_la-error.Tpo -c -o libwurfl_la-error.lo `test -f 'utils/error.c' || echo '$(srcdir)/'`utils/error.c

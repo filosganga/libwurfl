@@ -1,24 +1,28 @@
 /*
- * handler.c
+ * Copyright 2011 ff-dev.org
  *
- *  Created on: 23-mar-2009
- *      Author: filosganga
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-#include "resource.h"
+
+/* Written by Filippo De Luca <me@filippodeluca.com>.  */
+
+#include "parser.h"
 
 #include "devicedef.h"
 #include "utils/utils.h"
 #include "utils/hashmap.h"
 #include "utils/hashtable.h"
 #include "utils/error.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <errno.h>
 
 #include <libxml/encoding.h>
 #include <libxml/xmlversion.h>
@@ -27,6 +31,15 @@
 #include <libxml/SAX2.h>
 #include <libxml/tree.h>
 #include <libxml/xmlstring.h>
+#include <iconv.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <errno.h>
 
 #define ELEM_WURFL BAD_CAST("wurfl")
 #define ELEM_WURFL_PATCH BAD_CAST("wurfl_patch")
@@ -46,8 +59,7 @@
 extern int errno;
 
 typedef struct {
-	uint32_t size;
-	resource_type_e type;
+	iconv_t* iconv;
 
 	devicedef_t* current_devicedef;
 
@@ -56,14 +68,45 @@ typedef struct {
 
 } parse_context_t;
 
-static xmlChar* create_string(hashtable_t* strings, const xmlChar* string) {
+static char* create_string(const xmlChar* string, parse_context_t* context) {
 
-	return xmlStrdup(string);
+	size_t stringlen = xmlStrlen(string);
+
+	char tmp[8 * 1024];
+	char *tmpptr = tmp;
+	memset(tmpptr, '\0', 8 * 1024);
+
+	char* input = (char*)string;
+	size_t inputlen = strlen(input);
+
+	size_t inputleft = inputlen;
+	size_t outputleft = stringlen;
+
+
+	iconv_t* cd = iconv_open("ASCII", "UTF-8");
+	if(cd == -1) {
+		// It is very improbable
+		error(2, errno, "iconv does not support UTF-8 or ASCII");
+	}
+	size_t converted = iconv(cd, &input, &inputleft, &tmpptr, &outputleft);
+	if(converted == -1) {
+		error(2, errno, "error converting string");
+	}
+
+	iconv_close(cd);
+
+	char *output = malloc(sizeof(char) * (strlen(tmp) + 1));
+	if(!output) {
+		error(1, errno, "error allocating string");
+	}
+	strcpy(output, tmp);
+
+	return output;
 }
 
-static xmlChar* get_attribute(parse_context_t* context, int nb_attributes,	const xmlChar** attributes, xmlChar* name) {
+static char* get_attribute(parse_context_t* context, int nb_attributes,	const xmlChar** attributes, const xmlChar* name) {
 
-	xmlChar* value=NULL;
+	char *value=NULL;
 
 	int index;
 	for(index=0; index<nb_attributes && value==NULL; index++) {
@@ -78,7 +121,7 @@ static xmlChar* get_attribute(parse_context_t* context, int nb_attributes,	const
 			const xmlChar *valueEnd = attributes[att_index+4];
 
 			int value_size = valueEnd - valueBegin;
-			value = create_string(context->strings, xmlStrsub(valueBegin, 0, value_size));
+			value = create_string(xmlStrsub(valueBegin, 0, value_size), context);
 		}
 
 	}
@@ -90,10 +133,10 @@ static xmlChar* get_attribute(parse_context_t* context, int nb_attributes,	const
 
 static void start_capability(parse_context_t* context, int nb_attributes, const xmlChar** attributes) {
 
-	const xmlChar* name = get_attribute(context, nb_attributes, attributes, ATTR_NAME);
+	const char* name = get_attribute(context, nb_attributes, attributes, ATTR_NAME);
 
 	if(name) {
-		const xmlChar* value = get_attribute(context, nb_attributes, attributes, ATTR_VALUE);
+		const char* value = get_attribute(context, nb_attributes, attributes, ATTR_VALUE);
 		hashmap_put(context->current_devicedef->capabilities, name, value);
 	}
 	else {
@@ -119,8 +162,8 @@ static void start_device(parse_context_t* context, int nb_attributes, const xmlC
 	devicedef->user_agent = get_attribute(context, nb_attributes, attributes, ATTR_USER_AGENT);
 	devicedef->fall_back = get_attribute(context, nb_attributes, attributes, ATTR_FALL_BACK);
 
-	xmlChar* actual_device_root = get_attribute(context, nb_attributes, attributes, ATTR_ACTUAL_DEVICE_ROOT);
-	devicedef->actual_device_root = actual_device_root!=NULL && xmlStrEqual(actual_device_root, BAD_CAST("true")) == 0;
+	char* actual_device_root = get_attribute(context, nb_attributes, attributes, ATTR_ACTUAL_DEVICE_ROOT);
+	devicedef->actual_device_root = actual_device_root!=NULL && strcmp(actual_device_root, "true") == 0;
 
 	context->current_devicedef = devicedef;
 }
@@ -129,38 +172,12 @@ static void end_device(parse_context_t* context) {
 
 	//_debug(context->logger, __FILE__, __LINE__, "Adding %dth device: %s", context->size, devicedef->id);
 	hashmap_put(context->devices, context->current_devicedef->id, context->current_devicedef);
-	context->size++;
-	assert(context->size == hashmap_size(context->devices));
 
 	//fprintf(stderr, "Added device: %s\n", context->current_devicedef->id);
 
 	// reset context
 	context->current_devicedef = NULL;
 
-}
-
-static void start_wurfl(parse_context_t* context, int nb_attributes, const xmlChar** attributes) {
-	context->type = ROOT;
-}
-
-static void end_wurfl(parse_context_t* context) {
-
-}
-
-static void start_wurfl_patch(parse_context_t* context, int nb_attributes, const xmlChar** attributes) {
-	context->type = PATCH;
-}
-
-static void end_wurfl_patch(parse_context_t* context) {
-
-}
-
-static void start_ver(parse_context_t* context, int nb_attributes, const xmlChar** attributes) {
-	// TODO set ver started
-}
-
-static void end_ver(parse_context_t* context) {
-	// TODO put ver not started
 }
 
 // Sax implementation *****************************************************
@@ -189,12 +206,6 @@ static void startElementNs (void *ctx,
 		start_device(context, nb_attributes, attributes);
 	} else if (xmlStrEqual(localname, ELEM_CAPABILITY)) {
 		start_capability(context, nb_attributes, attributes);
-	} else if (xmlStrEqual(localname, ELEM_VER)) {
-		start_ver(context, nb_attributes, attributes);
-	} else if (xmlStrEqual(localname, ELEM_WURFL)) {
-		start_wurfl(context, nb_attributes, attributes);
-	} else if (xmlStrEqual(localname, ELEM_WURFL_PATCH)) {
-		start_wurfl_patch(context, nb_attributes, attributes);
 	} else {
 		// ignore other
 	}
@@ -211,26 +222,10 @@ void endElementNs(void *ctx,
 		end_device(context);
 	} else if (xmlStrEqual(localname, ELEM_CAPABILITY)) {
 		end_capability(context);
-	} else if (xmlStrEqual(localname, ELEM_VER)) {
-		end_ver(context);
-	} else if (xmlStrEqual(localname, ELEM_WURFL)) {
-		end_wurfl(context);
-	} else if (xmlStrEqual(localname, ELEM_WURFL_PATCH)) {
-		end_wurfl_patch(context);
 	} else {
 		// ignore other
 	}
 
-}
-
-static void attributef(void *ctx,
-				const xmlChar *elem,
-				const xmlChar *fullname,
-				int type,
-				int def,
-				const xmlChar *defaultValue,
-				xmlEnumerationPtr tree) {
-	// Empty
 }
 
 static void chars(void *ctx, const xmlChar *ch, int len) {
@@ -256,13 +251,13 @@ static void sax_nop(void *ctx) {
 /**
  * Parse function
  */
-int resource_parse(resource_data_t* resource_data, const char* path, hashtable_t* strings) {
+int parser_parse(const char* path, hashtable_t* strings, resource_data_t* resource_data) {
 
 	xmlSAXHandler saxHandler;
 	memset(&saxHandler, 0, sizeof(saxHandler));
 
 	if(xmlSAXVersion(&saxHandler, 2)!=0){
-		error(2,errno,"error initilizing SAX2 parser");
+		error(2,errno,"error initializing SAX2 parser");
 	}
 
 	saxHandler.startDocument = &start_document;
@@ -285,15 +280,15 @@ int resource_parse(resource_data_t* resource_data, const char* path, hashtable_t
 	context.devices = resource_data->devices;
 	context.strings = strings;
 	context.current_devicedef = NULL;
-	context.size = 0;
 
 	int sax_error = xmlSAXUserParseFile(&saxHandler, &context, path);
 	if(sax_error) {
-		error(2, "SAX error: %d parsing file: %s", sax_error, path);
+		error(2, 0, "SAX error parsing file: %s", path);
 	}
 
-	resource_data->version = strdup("TBD");
-	resource_data->type = context.type;
+	error(0,0, "parsed %d devices", hashmap_size(context.devices));
+
+	resource_data->version = "TBD";
 
 	xmlCleanupParser();
 
