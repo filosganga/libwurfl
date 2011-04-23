@@ -5,8 +5,8 @@
  *      Author: filosganga
  */
 
-#ifndef RESOURCE_H_
-#define RESOURCE_H_
+#ifndef PARSER_H_
+#define PARSER_H_
 
 #include "utils/hashmap.h"
 #include "utils/hashtable.h"
@@ -19,6 +19,6 @@ typedef struct {
 	resource_type_e type;
 } resource_data_t;
 
-int resource_parse(resource_data_t* resource_data, const char* path, hashtable_t* strings);
+int parser_parse(const char* path, hashtable_t* strings, resource_data_t* resource_data);
 
-#endif /* RESOURCE_H_ */
+#endif /* PARSER_H_ */

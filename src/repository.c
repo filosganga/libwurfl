@@ -7,15 +7,13 @@
 
 #include "repository.h"
 
-#include "resource.h"
+#include "parser.h"
 #include "devicedef.h"
 #include "utils/hashmap.h"
 #include "utils/hashtable.h"
 #include "utils/functors.h"
 #include "utils/utils.h"
 #include "utils/error.h"
-
-#include <libxml/xmlstring.h>
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -28,7 +26,7 @@
 extern int errno;
 
 struct _repository_t {
-	const char version[255];
+	const char* version;
 	hashtable_t* strings;
 	hashmap_t* devices;
 };
@@ -88,7 +86,7 @@ void repository_patch(repository_t* repository, const char** patches) {
 	}
 }
 
-devicedef_t* repository_get(repository_t* repository, const xmlChar* id) {
+devicedef_t* repository_get(repository_t* repository, const char* id) {
 
 	assert(repository!=NULL);
 	assert(id != NULL);
@@ -96,14 +94,14 @@ devicedef_t* repository_get(repository_t* repository, const xmlChar* id) {
 	return hashmap_get(repository->devices, id);
 }
 
-uint32_t repository_size(repository_t* repository) {
+size_t repository_size(repository_t* repository) {
 
 	assert(repository != NULL);
 
 	return hashmap_size(repository->devices);
 }
 
-bool repository_foreach(repository_t* repository, coll_functor_f* functor, void* functor_data) {
+bool repository_foreach(repository_t* repository, coll_functor_f functor, void* functor_data) {
 
 	assert(repository != NULL);
 	assert(functor != NULL);
@@ -119,10 +117,10 @@ static void init_devices(repository_t* repository, const char* path) {
 
 	hashmap_options_t devices_opts = {10000, 1.5f};
 	root_data.devices = hashmap_create(&string_eq, &string_hash, &devices_opts);
-	resource_parse(&root_data, path, repository->strings);
+	parser_parse(path, repository->strings, &root_data);
 
 	repository->devices = root_data.devices;
-	strcpy(repository->version, root_data.version);
+	repository->version = root_data.version;
 }
 
 static void apply_patch(repository_t* repository, const char* path) {

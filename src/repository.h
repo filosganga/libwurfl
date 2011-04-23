@@ -11,7 +11,6 @@
 #include "devicedef.h"
 #include "utils/utils.h"
 
-#include <libxml/xmlstring.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -25,10 +24,10 @@ void repository_patch(repository_t* repository, const char** patches);
 
 void repository_destroy(repository_t* repository);
 
-devicedef_t* repository_get(repository_t* repository, const xmlChar* id);
+devicedef_t* repository_get(repository_t* repository, const char* id);
 
-uint32_t repository_size(repository_t* repository);
+size_t repository_size(repository_t* repository);
 
-bool repository_foreach(repository_t* repository, coll_functor_f* functor, void* functor_data);
+bool repository_foreach(repository_t* repository, coll_functor_f functor, void* functor_data);
 
 #endif /* REPOSITORY_H_ */

@@ -16,6 +16,7 @@ libwurfl_la_SOURCES = \
 	utils/hashmap.c \
 	utils/hashtable.c \
 	utils/linkedlist.c \
+	utils/patricia.c \
 	utils/error.c \
 	utils/utils.c 
 	

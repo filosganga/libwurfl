@@ -8,48 +8,38 @@
 #include "wurfl.h"
 #include "device.h"
 
-
+#include <libxml/xmlstring.h>
 #include <stdio.h>
 #include <string.h>
-#include <libxml/xmlstring.h>
+#include <assert.h>
 
 
-//int test_strings() {
-//
-//	const unsigned char* key = "aaa";
-//	xmlChar* xml = xmlCharStrdup(key);
-//
-//	int size = strlen(key) * 8;
-//	int bit = size;
-//
-//	fprintf(stderr, "key=");
-//	for(bit=size; bit>0; bit--) {
-//		fprintf(stderr, "%d ",(key[bit >> 3] & (1 << (bit & 7))));
-//	}
-//	fprintf(stderr, "\n");
-//
-//	fprintf(stderr, "xml=");
-//	for(bit=size; bit>0; bit--) {
-//		fprintf(stderr, "%d ",(key[bit >> 3] & (1 << (bit & 7))));
-//	}
-//	fprintf(stderr, "\n");
-//
-//	return 0;
-//
-//}
-//
+
+int test_strings() {
+
+	const char* key = "aaa";
+
+	const char* normal = strdup(key);
+	xmlChar* xml = xmlCharStrdup(key);
+
+	fprintf(stderr, "%s=%d, %s=%d\n", key, strlen(key), xml, xmlStrlen(xml));
+
+	return 0;
+
+}
+
 int test_wurfl() {
 
 	//const char* main = argv[1];
 	//const char* patches[] = {};
 	//const char* patches[] = {"etc/web_browsers_patch.xml", NULL};
 
-	const char* main = "../etc/root.xml";
+	const char* root = "etc/root.xml";
 	const char* patches[] = {};
 
-	wurfl_t* wurfl = wurfl_init(main, patches);
+	wurfl_t* wurfl = wurfl_init(root, patches);
 
-	device_t* device = wurfl_match(wurfl, "DEVICE A A", "ASCII");
+	device_t* device = wurfl_match(wurfl, "DEVICE A A");
 	if(device!=NULL) {
 		fprintf(stderr, "Matched Device: %s\n", device_id(device));
 	}
@@ -88,13 +78,16 @@ int test_wurfl() {
 //	return 0;
 //}
 
+
 int main(int argc, char **argv) {
 
-	//test_strings();
+	test_strings();
 
 	// test_repository();
 
 	// test_resource();
+
+	// test_patricia();
 
 	test_wurfl();
 

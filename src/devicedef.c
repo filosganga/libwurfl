@@ -8,7 +8,6 @@
 #include "devicedef.h"
 
 #include <utils/utils.h>
-#include <libxml/xmlstring.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -19,7 +18,7 @@ int devicedef_cmp(const void* litem, const void* ritem) {
 	devicedef_t* ldevicedef = (devicedef_t*)litem;
 	devicedef_t* rdevicedef = (devicedef_t*)ritem;
 
-	return xmlStrcmp(ldevicedef->id, rdevicedef->id);
+	return strcmp(ldevicedef->id, rdevicedef->id);
 }
 
 uint32_t devicedef_hash(const void* item) {
@@ -34,5 +33,5 @@ bool devicedef_eq(const void* litem, const void* ritem) {
 	devicedef_t* ldevicedef = (devicedef_t*)litem;
 	devicedef_t* rdevicedef = (devicedef_t*)ritem;
 
-	return xmlStrEqual(ldevicedef->id, rdevicedef->id)==0;
+	return strcmp(ldevicedef->id, rdevicedef->id)==0;
 }

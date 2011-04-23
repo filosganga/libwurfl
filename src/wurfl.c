@@ -14,13 +14,11 @@
 #include "utils/functors.h"
 #include "utils/error.h"
 
-#include <libxml/xmlstring.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <math.h>
-#include <iconv.h>
 #include <errno.h>
 
 extern int errno;
@@ -31,30 +29,27 @@ struct _wurfl_t {
 	size_t size;
 };
 
-static xmlChar* devicedef_user_agent(devicedef_t* device) {
-	return device->user_agent;
-}
-
 static int devicedef_user_agent_cmp(const void* left, const void* right) {
 
-	devicedef_t** l = left;
-	devicedef_t** r = right;
+	devicedef_t** l = (devicedef_t**)left;
+	devicedef_t** r = (devicedef_t**)right;
 
-	return xmlStrcmp((*l)->user_agent, (*r)->user_agent);
+	return strcmp((*l)->user_agent, (*r)->user_agent);
 }
 
 wurfl_t* wurfl_init(const char* root, const char** patches) {
 
 	wurfl_t* wurfl = malloc(sizeof(wurfl_t));
 	if(wurfl==NULL) {
-		// Error
+		error(1,errno,"error allocating memory to wurfl");
 	}
 
 	repository_t* repository = repository_create(root, patches);
 
+	error(0,0,"repo created");
+
 	wurfl->repository = repository;
 
-	hashmap_options_t devices_opts = {10000, 1.5f};
 	wurfl->devices = malloc(sizeof(devicedef_t*) * repository_size(repository));
 	if(!wurfl->devices) {
 		// FIXME memory error message
@@ -69,6 +64,11 @@ wurfl_t* wurfl_init(const char* root, const char** patches) {
 	repository_foreach(wurfl->repository, &functor_toarray, &toarray_data);
 	qsort(wurfl->devices, wurfl->size, sizeof(device_t*), &devicedef_user_agent_cmp);
 
+	int i;
+	for(i=0; i<wurfl->size; i++) {
+		fprintf(stderr, "Device ua: %s\n", wurfl->devices[i]->user_agent);
+	}
+
 	return wurfl;
 }
 
@@ -79,21 +79,17 @@ void wurfl_destroy(wurfl_t* wurfl) {
 	free(wurfl);
 }
 
-static int32_t calc_distance(const xmlChar* t1, const xmlChar* t2){
+static int32_t calc_distance(const char* t1, const char* t2){
 
-	uint32_t t1_len = xmlStrlen(t1);
-	uint32_t t2_len = xmlStrlen(t2);
+	int32_t t1_len = strlen(t1);
+	int32_t t2_len = strlen(t2);
 
-	uint32_t t;
-	if(t1_len < t2_len) {
-		t = t1_len;
-	}
-	else {
-		t = t2_len;
-	}
+	int32_t min_len = t1_len < t2_len ? t1_len : t2_len;
 
-    uint32_t i = 0;
-    while (i < t && t1[i] == t2[i]) i++;
+    int32_t i = 0;
+    while (i < min_len && t1[i] == t2[i]) i++;
+
+    error(0,0,"distance of %s and %s is %d", t1, t2, i);
 
     return i;
 }
@@ -103,9 +99,9 @@ typedef struct {
 	devicedef_t* device;
 } best_match_t;
 
-bool match(const xmlChar* needle, devicedef_t** candidates, size_t candidates_size, best_match_t* best_match) {
+bool match(const char* needle, devicedef_t** candidates, size_t candidates_size, best_match_t* best_match) {
 
-	int32_t needle_lenght = xmlStrlen(needle);
+	int32_t needle_lenght = strlen(needle);
 
 	bool matched = false;
 
@@ -114,6 +110,8 @@ bool match(const xmlChar* needle, devicedef_t** candidates, size_t candidates_si
 
 	int32_t low = 0;
 	int32_t high = candidates_size - 1;
+
+	error(0,0,"needle: %s, nedle_len: %d, low: %d, high: %d", needle, needle_lenght, low, high);
 
 
 	/*
@@ -133,7 +131,7 @@ bool match(const xmlChar* needle, devicedef_t** candidates, size_t candidates_si
 		}
 
 		// Calculate low and high
-		int cmp = xmlStrcmp(mid_candidate->user_agent, needle);
+		int cmp = strcmp(mid_candidate->user_agent, needle);
 		if (cmp < 0) {
 			low = mid + 1;
 		}
@@ -148,35 +146,13 @@ bool match(const xmlChar* needle, devicedef_t** candidates, size_t candidates_si
 	return matched;
 }
 
-device_t* wurfl_match(const wurfl_t* wurfl, const wchar_t *user_agent, const char *encoding) {
+device_t* wurfl_match(const wurfl_t* wurfl, const char* user_agent) {
 
-	device_t* device = NULL;
 
-	size_t user_agent_len = wcslen(user_agent);
-	size_t inbytesleft = user_agent_len * sizeof(wchar_t);
+	best_match_t best_match;
+	match(user_agent, wurfl->devices, wurfl->size, &best_match);
 
-	size_t outbytesleft = 255 * sizeof(xmlChar);
-	xmlChar* needle = malloc(outbytesleft);
-	if(needle==NULL) {
-		error(-1, errno, "error allocating user_agent UTF-8 string");
-	}
-
-	iconv_t cd = iconv_open("UTF-8", encoding);
-	if(cd == -1) {
-		error(0, errno, "iconv does not support %s encoding", encoding);
-	}
-	else {
-
-		size_t result = iconv(cd, (const char**)&user_agent, &inbytesleft, (char**)&needle, &outbytesleft);
-		iconv_close(cd);
-
-		best_match_t best_match;
-		match(needle, wurfl->devices, wurfl->size, &best_match);
-
-		device = device_create(wurfl->repository, best_match.device);
-	}
-
-	return device;
+	return device_create(wurfl->repository, best_match.device);
 }
 
 

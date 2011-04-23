@@ -10,12 +10,10 @@
 
 #include "utils/hashmap.h"
 
-#include <libxml/xmlstring.h>
-
 typedef struct {
-	xmlChar* id;
-	xmlChar* user_agent;
-	xmlChar* fall_back;
+	const char* id;
+	const char* user_agent;
+	const char* fall_back;
 	bool actual_device_root;
 	hashmap_t* capabilities;
 } devicedef_t;
