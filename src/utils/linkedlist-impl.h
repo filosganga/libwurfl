@@ -37,7 +37,7 @@ struct _linkedlist_t {
 	linkedlist_node_t* end;
 
 	/* functions */
-	coll_equals_f item_equals;
+	coll_equals_f* item_equals;
 
 	/* state */
 	uint32_t size;

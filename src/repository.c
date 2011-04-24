@@ -111,7 +111,7 @@ size_t repository_size(repository_t* repository) {
 	return hashmap_size(repository->devices);
 }
 
-bool repository_foreach(repository_t* repository, coll_functor_f functor, void* functor_data) {
+bool repository_foreach(repository_t* repository, coll_functor_f* functor, void* functor_data) {
 
 	assert(repository != NULL);
 	assert(functor != NULL);

@@ -231,7 +231,7 @@ void* linkedlist_get(linkedlist_t* list, uint32_t index) {
 
 // Modify list functions **************************************************
 
-linkedlist_t* linkedlist_create(coll_equals_f item_equals) {
+linkedlist_t* linkedlist_create(coll_equals_f* item_equals) {
 
 	assert(item_equals != NULL);
 
@@ -248,7 +248,7 @@ linkedlist_t* linkedlist_create(coll_equals_f item_equals) {
 	return list;
 }
 
-void linkedlist_destroy(linkedlist_t* list, coll_unduper_f unduper, void* unduper_data) {
+void linkedlist_destroy(linkedlist_t* list, coll_unduper_f* unduper, void* unduper_data) {
 
 	assert(list != NULL);
 
@@ -256,7 +256,7 @@ void linkedlist_destroy(linkedlist_t* list, coll_unduper_f unduper, void* undupe
 	linkedlist_free(list);
 }
 
-void linkedlist_clear(linkedlist_t* list, coll_unduper_f unduper, void* unduper_data) {
+void linkedlist_clear(linkedlist_t* list, coll_unduper_f* unduper, void* unduper_data) {
 
 
 	assert(list != NULL);
@@ -303,7 +303,7 @@ linkedliststatus_t linkedlist_status(linkedlist_t* list) {
 	return list->stats;
 }
 
-int linkedlist_foreach(linkedlist_t* list, coll_functor_f functor, void* functor_data) {
+int linkedlist_foreach(linkedlist_t* list, coll_functor_f* functor, void* functor_data) {
 
 	int finished = 0;
 	linkedlist_node_t* current = list->start;

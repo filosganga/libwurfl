@@ -50,8 +50,8 @@ struct _hashtable_t {
 	hashtable_entry_t** table;
 	uint32_t table_size;
 	uint32_t table_used;
-	coll_hash_f hash_fn;
-	coll_equals_f eq_fn;
+	coll_hash_f* hash_fn;
+	coll_equals_f* eq_fn;
 	uint32_t threshold;
 	uint32_t size;
 	float lfactor;

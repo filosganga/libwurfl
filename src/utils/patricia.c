@@ -44,6 +44,9 @@ struct _trie_node_t {
 
 struct _trie_t {
 	trie_node_t *root;
+	coll_duper_f* key_dupe;
+	coll_unduper_f* key_undupe;
+	void* key_dupe_xtra;
 };
 
 extern int errno;
@@ -86,7 +89,7 @@ static bool key_isset(const void *key, int32_t index) {
 	}
 }
 
-static trie_node_t* node_alloc(const void *key, const void *value, int32_t msd) {
+static trie_node_t* node_alloc(trie_t* trie, const void *key, const void *value, int32_t msd) {
 
 	// Allocate the node
 	trie_node_t* node = malloc(sizeof(trie_node_t));
@@ -94,7 +97,7 @@ static trie_node_t* node_alloc(const void *key, const void *value, int32_t msd) 
 		error(1, errno, "error allocating new trie node");
 	}
 
-	node->key= key;
+	node->key = trie->key_dupe(key, trie->key_dupe_xtra);
 	node->value = value;
 	node->msd = msd;
 
@@ -104,21 +107,30 @@ static trie_node_t* node_alloc(const void *key, const void *value, int32_t msd) 
 	return node;
 }
 
-static void node_free(trie_node_t* node) {
+static void node_free(trie_t* trie, trie_node_t* node) {
 	free(node);
 }
 
-trie_t* trie_init() {
+static bool node_foreach(trie_node_t* current, int32_t msd, coll_functor_f* functor, void* functor_data) {
 
-	trie_t* trie = malloc(sizeof(trie_t));
-	if(!trie) {
-		error(1, errno, "error allocating new trie");
+	if(current->msd >= msd) {
+		return false;
 	}
+	else {
+		bool finished = functor(current->value, functor_data);
+		finished = finished || node_foreach(current->left, current->msd, functor, functor_data);
+		finished = finished || node_foreach(current->right, current->msd, functor, functor_data);
+		return finished;
+	}
+}
 
-	trie->root = node_alloc(NULL, NULL, -1);
-	trie->root->left = trie->root;
+void node_destroy(trie_t* trie, trie_node_t* current, int32_t msd, coll_unduper_f* undupe, void* undupe_data) {
 
-	return trie;
+	if(current->msd < msd) {
+		node_destroy(trie, current->left, current->msd, undupe, undupe_data);
+		node_destroy(trie, current->right, current->msd, undupe, undupe_data);
+		node_free(trie, current);
+	}
 }
 
 static trie_node_t* node_search(trie_node_t* current, const void* key, int32_t msd) {
@@ -133,30 +145,51 @@ static trie_node_t* node_search(trie_node_t* current, const void* key, int32_t m
     }
 }
 
-static trie_node_t* node_put(trie_node_t* start, trie_node_t* parent, int32_t msd, const void* key, const void* value) {
-
-	trie_node_t* updated = start;
+static trie_node_t* node_put(trie_node_t* node, trie_node_t* start, trie_node_t* parent) {
 
 	// We have overpass the node or this is the last node
-	if(start->msd >= msd  || start->msd <= parent->msd) {
-		updated = node_alloc(key, value, msd);
-		updated->left = key_isset(key, msd)?start:updated;
-		updated->right = key_isset(key, msd)?updated:start;
-	}
-	else if(!key_isset(key, start->msd)) {
-		start->left = node_put(start->left, start, msd, key, value);
+	if(start->msd >= node->msd  || start->msd <= parent->msd) {
+		node->left = key_isset(node->key, node->msd)?start:node;
+		node->right = key_isset(node->key, node->msd)?node:start;
+		return node;
 	}
 	else {
-		start->right = node_put(start->right, start, msd, key, value);
+		if(!key_isset(node->key, start->msd)) {
+			start->left = node_put(node, start->left, start);
+		}
+		else {
+			start->right = node_put(node, start->right, start);
+		}
+		return start;
 	}
-
-	return updated;
 }
 
-void trie_free(trie_t* trie) {
+trie_t* trie_init(coll_duper_f* key_dupe, coll_unduper_f* key_undupe, void* key_dupe_xtra) {
 
-	// TODO free all subnodes
-	node_free(trie->root);
+	trie_t* trie = malloc(sizeof(trie_t));
+	if(!trie) {
+		error(1, errno, "error allocating new trie");
+	}
+	trie->key_dupe = key_dupe;
+	trie->key_undupe = key_undupe;
+	trie->key_dupe_xtra = key_dupe_xtra;
+
+	if(!trie->key_dupe) {
+		trie->key_dupe = &coll_nop_duper;
+	}
+	if(!trie->key_undupe) {
+		trie->key_undupe = &coll_nop_unduper;
+	}
+
+	trie->root = node_alloc(trie, NULL, NULL, -1);
+	trie->root->left = trie->root;
+
+	return trie;
+}
+
+void trie_destroy(trie_t* trie, coll_unduper_f undupe, void* undupe_data) {
+	node_destroy(trie, trie->root->left, -1, undupe, undupe_data);
+	node_free(trie, trie->root);
 	free(trie);
 }
 
@@ -172,7 +205,8 @@ void trie_put(trie_t* trie, const void* key, const void* value) {
 		int32_t msd = 0;
 		while(key_isset(key, msd)==key_isset(nearest->key, msd)) msd++;
 
-		trie->root->left = node_put(trie->root->left, trie->root, msd, key, value);
+		trie_node_t* new_node = node_alloc(trie, key, value, msd);
+		trie->root->left = node_put(new_node, trie->root->left, trie->root);
 	}
 }
 
@@ -191,35 +225,10 @@ void* trie_search(trie_t* trie, const void* key) {
     return nearest->value;
 }
 
-static bool node_traverse(trie_node_t* current, int32_t msd, coll_functor_f functor, void* functor_data) {
-
-	if(current->msd >= msd) {
-		return false;
-	}
-	else {
-		bool finished = functor(current->value, functor_data);
-		finished = finished || node_traverse(current->left, current->msd, functor, functor_data);
-		finished = finished || node_traverse(current->right, current->msd, functor, functor_data);
-		return finished;
-	}
+bool trie_foreach(trie_t* trie, coll_functor_f* functor, void* functor_data) {
+	return node_foreach(trie->root->left, -1, functor, functor_data);
 }
 
-bool trie_traverse(trie_t* trie, coll_functor_f functor, void* functor_data) {
-	return node_traverse(trie->root->left, -1, functor, functor_data);
-}
 
-void node_destroy(trie_node_t* current, int32_t msd, coll_unduper_f undupe, void* undupe_data) {
 
-	if(current->msd < msd) {
-		node_destroy(current->left, current->msd, undupe, undupe_data);
-		node_destroy(current->right, current->msd, undupe, undupe_data);
-		node_free(current);
-	}
-}
-
-void trie_destroy(trie_t* trie, coll_unduper_f undupe, void* undupe_data) {
-	node_destroy(trie->root->left, -1, undupe, undupe_data);
-	node_free(trie->root);
-	free(trie);
-}
 

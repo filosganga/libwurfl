@@ -52,7 +52,7 @@ hashmap_item_t* item_create(hashmap_t* hashmap, const void* key, const void* ite
 }
 
 typedef struct {
-	coll_unduper_f unduper;
+	coll_unduper_f* unduper;
 	void* data;
 } item_destroy_data_t;
 
@@ -87,7 +87,7 @@ uint32_t item_hash(const void *item) {
 // Functors ***************************************************************
 
 typedef struct {
-	coll_functor_f functor;
+	coll_functor_f* functor;
 	void* data;
 
 } item_functor_data_t;
@@ -121,7 +121,7 @@ bool putall_functor(const void* item, void* data) {
 
 // Interface funcions *****************************************************
 
-hashmap_t* hashmap_create(coll_equals_f key_equals, coll_hash_f key_hash, hashmap_options_t* options) {
+hashmap_t* hashmap_create(coll_equals_f* key_equals, coll_hash_f* key_hash, hashmap_options_t* options) {
 
 	hashmap_t* map = malloc(sizeof(hashmap_t));
 
@@ -139,7 +139,7 @@ hashmap_t* hashmap_create(coll_equals_f key_equals, coll_hash_f key_hash, hashma
 	return map;
 }
 
-void hashmap_destroy(hashmap_t* map, coll_unduper_f unduper, void* unduper_data) {
+void hashmap_destroy(hashmap_t* map, coll_unduper_f* unduper, void* unduper_data) {
 
 	assert(map!=NULL);
 
@@ -239,7 +239,7 @@ bool hashmap_contains(hashmap_t* hashmap, const void* key) {
 	return hashmap_get(hashmap, key) != NULL;
 }
 
-void hashmap_clear(hashmap_t* map, coll_unduper_f unduper, void* unduper_data) {
+void hashmap_clear(hashmap_t* map, coll_unduper_f* unduper, void* unduper_data) {
 
 	assert(map!=NULL);
 
@@ -273,7 +273,7 @@ void hashmap_clear(hashmap_t* map, coll_unduper_f unduper, void* unduper_data) {
 //	return found;
 //}
 
-bool hashmap_foreach(hashmap_t* hashmap, coll_functor_f functor, void* functor_data) {
+bool hashmap_foreach(hashmap_t* hashmap, coll_functor_f* functor, void* functor_data) {
 
 	assert(hashmap!=NULL);
 	assert(functor!=NULL);

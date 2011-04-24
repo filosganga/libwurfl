@@ -95,7 +95,7 @@ static int hashtable_reinforce_hash(const int weak_hash) {
 	return hash ^ (hash >> 7) ^ (hash >> 4);
 }
 
-hashtable_t* hashtable_create(coll_equals_f eq_fn, coll_hash_f hash_fn, hashtable_options_t* options) {
+hashtable_t* hashtable_create(coll_equals_f* eq_fn, coll_hash_f* hash_fn, hashtable_options_t* options) {
 
 	if(options==NULL) {
 		hashtable_options_t default_opts = {16, 0.75f};
@@ -151,7 +151,7 @@ hashtable_t* hashtable_create(coll_equals_f eq_fn, coll_hash_f hash_fn, hashtabl
 	return hashtable;
 }
 
-void hashtable_destroy(hashtable_t* hashtable, coll_unduper_f unduper, void* unduper_data) {
+void hashtable_destroy(hashtable_t* hashtable, coll_unduper_f* unduper, void* unduper_data) {
 
 	hashtable_clear(hashtable, unduper, unduper_data);
 
@@ -206,7 +206,7 @@ void* hashtable_remove(hashtable_t* hashtable, const void* item) {
     return removed;
 }
 
-void hashtable_clear(hashtable_t* hashtable, coll_unduper_f unduper, void* unduper_data) {
+void hashtable_clear(hashtable_t* hashtable, coll_unduper_f* unduper, void* unduper_data) {
 
 	uint32_t tindex = 0;
 	for(tindex=0; tindex<hashtable->table_size; tindex++) {
@@ -239,7 +239,7 @@ bool hashtable_empty(hashtable_t* hashtable) {
 	return hashtable_size(hashtable)==0;
 }
 
-bool hashtable_foreach(hashtable_t* hashtable, coll_functor_f functor, void* functor_data) {
+bool hashtable_foreach(hashtable_t* hashtable, coll_functor_f* functor, void* functor_data) {
 
 	uint32_t tindex = 0;
 	bool finish = false;

@@ -21,14 +21,13 @@
 #include "utils/error.h"
 #include "utils/functors.h"
 
-
 #include <stdlib.h>
 #include <errno.h>
 
 extern int errno;
 
 struct _matcher_t {
-	trie_t* ptrie;
+	trie_t* prefix;
 };
 
 static void* devicedef_user_agent(const void* item) {
@@ -44,10 +43,10 @@ matcher_t* matcher_init(repository_t* repo) {
 		error(1, errno, "error allocating matcher");
 	}
 
-	matcher->ptrie = trie_init();
+	matcher->prefix = trie_init(NULL, NULL, NULL);
 
 	functor_totrie_data_t totrie_data;
-	totrie_data.trie = matcher->ptrie;
+	totrie_data.trie = matcher->prefix;
 	totrie_data.key_get = &devicedef_user_agent;
 	repository_foreach(repo, &functor_totrie, &totrie_data);
 
@@ -56,13 +55,13 @@ matcher_t* matcher_init(repository_t* repo) {
 
 void matcher_destroy(matcher_t* matcher) {
 
-	trie_destroy(matcher->ptrie, NULL, NULL);
+	trie_destroy(matcher->prefix, NULL, NULL);
 	free(matcher);
 }
 
 devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
 
-	devicedef_t* matched = (devicedef_t*)trie_search(matcher->ptrie, user_agent);
+	devicedef_t* matched = (devicedef_t*)trie_search(matcher->prefix, user_agent);
 
 	return matched;
 }

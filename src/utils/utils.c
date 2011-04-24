@@ -17,6 +17,8 @@
 /* Written by Filippo De Luca <me@filippodeluca.com>.  */
 
 #include "utils.h"
+
+#include "error.h"
 #include "../../config.h"
 
 #include <stdlib.h>
@@ -24,8 +26,15 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <errno.h>
+
+extern int errno;
 
 static uint32_t hash_int_impl(uint32_t a);
+
+void* coll_nop_duper(const void* item, const void* xtra) {
+	return item;
+}
 
 void coll_nop_unduper(void* item, const void* xtra) {
 
@@ -95,6 +104,29 @@ bool int_eq(const void* litem, const void *ritem) {
 	uint32_t* rint = (uint32_t*)ritem;
 
 	return *lint==*rint;
+}
+
+char* strrev(const char *s) {
+
+	char *t;
+
+	if(s != NULL) {
+		size_t s_len = strlen(s);
+		t = malloc(sizeof(char) * (s_len + 1));
+		if(!t) {
+			error(1, errno, "error allocating string for rverse");
+		}
+
+		uint32_t i, j;
+		for(i = 0, j = s_len - 1; j >= 0; i++, j--) {
+			*(t + j) = *(s + i);
+		}
+	}
+	else {
+		t = (char*)s;
+	}
+
+	return t;
 }
 
 /**

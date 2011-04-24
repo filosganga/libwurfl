@@ -32,8 +32,8 @@ typedef struct _hashmap_item_t {
 
 struct _hashmap_t {
 	hashtable_t* hashtable;
-	coll_hash_f key_hash;
-	coll_equals_f key_equals;
+	coll_hash_f* key_hash;
+	coll_equals_f* key_equals;
 };
 
 // Item *******************************************************************

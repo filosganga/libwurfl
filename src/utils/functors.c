@@ -30,7 +30,7 @@ int functor_tomap(const void* item, void* data) {
 int functor_toarray(const void* item, void* data) {
 	functor_toarray_data_t* toarray_data = data;
 
-	toarray_data->array[toarray_data->index++] = item;
+	toarray_data->array[toarray_data->index++] = (void*)item;
 
 	return 0;
 }

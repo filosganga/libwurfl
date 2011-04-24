@@ -47,14 +47,14 @@ typedef struct {
  *
  * @return Pointer to created linkedlist_t
  */
-linkedlist_t* linkedlist_create(coll_equals_f item_equals);
+linkedlist_t* linkedlist_create(coll_equals_f* item_equals);
 
 /**
  * Call list_clear() and deallocate memory from list.
  *
  * @attention After calling this function, the given linkedlist_t points to invalid location.
  */
-void linkedlist_destroy(linkedlist_t*, coll_unduper_f unduper, void* unduper_data);
+void linkedlist_destroy(linkedlist_t*, coll_unduper_f* unduper, void* unduper_data);
 
 /**
  * Add a item to the given linkedlist_t
@@ -127,7 +127,7 @@ uint32_t linkedlist_size(linkedlist_t* list);
  *
  * @param list The linkedlist_t to be cleared.
  */
-void linkedlist_clear(linkedlist_t* list, coll_unduper_f unduper, void* unduper_data);
+void linkedlist_clear(linkedlist_t* list, coll_unduper_f* unduper, void* unduper_data);
 
 /**
  * Get list's usage statistics an status info
@@ -136,7 +136,7 @@ linkedliststatus_t linkedlist_status(linkedlist_t* list);
 
 //void* linkedlist_find(linkedlist_t* list, coll_predicate_f* predicate, void* predicate_data);
 
-int linkedlist_foreach(linkedlist_t* list, coll_functor_f functor, void* functor_data);
+int linkedlist_foreach(linkedlist_t* list, coll_functor_f* functor, void* functor_data);
 
 
 void linkedlist_toarray(linkedlist_t* list, void** array);

@@ -39,6 +39,6 @@ devicedef_t* repository_get(repository_t* repository, const char* id);
 
 size_t repository_size(repository_t* repository);
 
-bool repository_foreach(repository_t* repository, coll_functor_f functor, void* functor_data);
+bool repository_foreach(repository_t* repository, coll_functor_f* functor, void* functor_data);
 
 #endif /* REPOSITORY_H_ */
