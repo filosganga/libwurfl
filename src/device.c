@@ -51,14 +51,14 @@ void device_release(device_t* device) {
 	free(device);
 }
 
-unsigned char* device_capability(const device_t* device, const unsigned char* name) {
+char* device_capability(const device_t* device, const char* name) {
 
 	assert(device!=NULL);
 	assert(name!=NULL);
 
 	devicedef_t* current = device->root;
 
-	unsigned char* value = NULL;
+	char* value = NULL;
 
 	while((value = hashmap_get(current->capabilities, name)) == NULL && current->fall_back != NULL) {
 		current = repository_get(device->repository, current->fall_back);
@@ -67,14 +67,14 @@ unsigned char* device_capability(const device_t* device, const unsigned char* na
 	return value;
 }
 
-unsigned char* device_id(const device_t* device) {
+char* device_id(const device_t* device) {
 
 	assert(device!=NULL);
 
 	return device->root->id;
 }
 
-unsigned char* device_user_agent(const device_t* device) {
+char* device_user_agent(const device_t* device) {
 
 	assert(device!=NULL);
 
