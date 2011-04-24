@@ -39,4 +39,6 @@ void* trie_search(trie_t* trie, const void* key);
 
 bool trie_foreach(trie_t* trie, coll_functor_f* functor, void* functor_data);
 
+bool trie_search_foreach(trie_t* trie, const void* key, coll_functor_f* functor, void* functor_data);
+
 #endif /* PATRICIA_H_ */

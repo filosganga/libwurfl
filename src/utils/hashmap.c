@@ -133,6 +133,10 @@ hashmap_t* hashmap_create(coll_equals_f* key_equals, coll_hash_f* key_hash, hash
 		hashtable_options.initial_capacity = options->initial_capacity;
 		hashtable_options.load_factor = options->load_factor;
 	}
+	else {
+		hashtable_options.initial_capacity = 128;
+		hashtable_options.load_factor = 1.5f;
+	}
 
 	map->hashtable = hashtable_create(&item_eq, &item_hash, &hashtable_options);
 
@@ -283,17 +287,5 @@ bool hashmap_foreach(hashmap_t* hashmap, coll_functor_f* functor, void* functor_
 	item_functor_data.data = functor_data;
 
 	return hashtable_foreach(hashmap->hashtable, &item_functor, &item_functor_data);
-}
-
-void hashmap_toarray(hashmap_t* hashmap, void** array) {
-
-	assert(hashmap!=NULL);
-	assert(array!=NULL);
-
-	functor_toarray_data_t toarray_data;
-	toarray_data.array = array;
-	toarray_data.index = 0;
-
-	hashmap_foreach(hashmap, &functor_toarray, &toarray_data);
 }
 

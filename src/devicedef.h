@@ -29,6 +29,18 @@ typedef struct {
 	hashmap_t* capabilities;
 } devicedef_t;
 
+devicedef_t* devicedef_init(const char* id, const char* user_agent, const char* fallback, bool actual_device_root, hashmap_t* capabilities);
+
+void devicedef_destroy(devicedef_t* device);
+
+char* devicedef_id(const devicedef_t* device);
+
+char* devicedef_user_agent(const devicedef_t* device);
+
+char* devicedef_fallback(const devicedef_t* device);
+
+devicedef_t* devicedef_patch(devicedef_t* patching, const devicedef_t* patcher);
+
 int devicedef_cmp(const void* left, const void* right);
 
 uint32_t devicedef_hash(const void* item);

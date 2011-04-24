@@ -27,15 +27,13 @@
 
 int test_wurfl() {
 
+	const char* root = "etc/wurfl.xml";
 	//const char* patches[] = {};
-	//const char* patches[] = {"etc/web_browsers_patch.xml", NULL};
-
-	const char* root = "../etc/wurfl.xml";
-	const char* patches[] = {};
+	const char* patches[] = {"etc/web_browsers_patch.xml", NULL};
 
 	wurfl_t* wurfl = wurfl_init(root, patches);
 
-	device_t* device = wurfl_match(wurfl, "Nokia6600");
+	device_t* device = wurfl_match(wurfl, "Nokia6601");
 	if(device!=NULL) {
 		fprintf(stderr, "Matched Device: %s\n", device_id(device));
 	}

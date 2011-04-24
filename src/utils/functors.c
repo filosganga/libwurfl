@@ -28,11 +28,13 @@ int functor_tomap(const void* item, void* data) {
 }
 
 int functor_toarray(const void* item, void* data) {
-	functor_toarray_data_t* toarray_data = data;
+	functor_toarray_data_t* tadata = data;
 
-	toarray_data->array[toarray_data->index++] = (void*)item;
+	if(tadata->index < tadata->size) {
+		tadata->array[tadata->index++] = (void*)item;
+	}
 
-	return 0;
+	return tadata->index >= tadata->size;
 }
 
 int functor_totrie(const void* item, void* data) {

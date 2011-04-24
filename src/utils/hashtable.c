@@ -268,18 +268,6 @@ bool hashtable_foreach(hashtable_t* hashtable, coll_functor_f* functor, void* fu
 //	return found;
 //}
 
-void hashtable_toarray(hashtable_t* hashtable, void** array) {
-
-	assert(hashtable!=NULL);
-	assert(array!=NULL);
-
-	functor_toarray_data_t functor_data;
-	functor_data.array = array;
-	functor_data.index = 0;
-
-	hashtable_foreach(hashtable, &functor_toarray, &functor_data);
-}
-
 uint32_t hashtable_index(const int32_t hash, uint32_t length) {
     return hash & (length-1);
 }

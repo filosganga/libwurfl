@@ -138,7 +138,4 @@ linkedliststatus_t linkedlist_status(linkedlist_t* list);
 
 int linkedlist_foreach(linkedlist_t* list, coll_functor_f* functor, void* functor_data);
 
-
-void linkedlist_toarray(linkedlist_t* list, void** array);
-
 #endif /*LIST_H_*/

@@ -34,6 +34,7 @@ int functor_tomap(const void* item, void* data);
 
 typedef struct {
 	uint32_t index;
+	size_t size;
 	void** array;
 } functor_toarray_data_t;
 

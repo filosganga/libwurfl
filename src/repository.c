@@ -133,8 +133,31 @@ static void init_devices(repository_t* repository, const char* path) {
 	repository->version = root_data.version;
 }
 
+static bool patch_device(const void* item, void* xtra) {
+
+	hashmap_t* devices = (hashmap_t*)xtra;
+	devicedef_t* patcher = (devicedef_t*)item;
+
+	devicedef_t* patching = hashmap_get(devices, patcher->id);
+	if(patching) {
+		devicedef_patch(patching, patcher);
+		devicedef_destroy(patcher);
+	}
+	else {
+		hashmap_put(devices, patcher->id, patcher);
+	}
+
+	return false;
+}
+
 static void apply_patch(repository_t* repository, const char* path) {
 
+	resource_data_t rdata;
+	hashmap_options_t devices_opts = {1024, 1.5f};
+	rdata.devices = hashmap_create(&string_eq, &string_hash, &devices_opts);
+	parser_parse(path, repository->strings, &rdata);
+
+	hashmap_foreach(rdata.devices, &patch_device, repository->devices);
 }
 
 

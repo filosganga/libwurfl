@@ -18,11 +18,60 @@
 
 #include "devicedef.h"
 
-#include <utils/utils.h>
+#include "utils/utils.h"
+#include "utils/error.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
+
+extern int errno;
+
+devicedef_t* devicedef_init(const char* id,
+		const char* user_agent,
+		const char* fallback,
+		bool actual_device_root,
+		hashmap_t* capabilities) {
+
+	devicedef_t* device = malloc(sizeof(devicedef_t));
+	if(device==NULL) {
+		error(1, errno, "error allocating device");
+	}
+
+	device->id = id;
+	device->user_agent = user_agent;
+	device->fall_back = fallback;
+	device->capabilities = capabilities;
+}
+
+void devicedef_destroy(devicedef_t* device) {
+
+	hashmap_destroy(device->capabilities, &coll_nop_unduper, NULL);
+	free(device);
+}
+
+devicedef_t* devicedef_patch(devicedef_t* patching, const devicedef_t* patcher) {
+
+	patching->user_agent = patcher->user_agent;
+	patching->fall_back = patcher->fall_back;
+	patching->actual_device_root = patcher->actual_device_root;
+	hashmap_putall(patching->capabilities, patcher->capabilities);
+
+	return patching;
+}
+
+char* devicedef_id(const devicedef_t* device) {
+	return device->id;
+}
+
+char* devicedef_user_agent(const devicedef_t* device) {
+	return device->user_agent;
+}
+
+char* devicedef_fallback(const devicedef_t* device) {
+	return device->fall_back;
+}
 
 int devicedef_cmp(const void* litem, const void* ritem) {
 

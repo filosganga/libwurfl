@@ -22,6 +22,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifndef min
+#define min(a,b) ((a)<(b))?(a):(b)
+#endif
+
+#ifndef max
+#define max(a,b) ((a)>=(b))?(a):(b)
+#endif
+
 /* Possible error returns, powers of 2 */
 enum coll_errors {COLL_OK = 0, COLL_NOMEM=2};
 

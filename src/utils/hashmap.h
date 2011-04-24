@@ -60,6 +60,4 @@ bool hashmap_foreach(hashmap_t* hashmap, coll_functor_f* functor, void* functor_
 
 //void* hashmap_find(hashmap_t* map, coll_predicate_f* predicate, void* predicate_data);
 
-void hashmap_toarray(hashmap_t* hashmap, void** array);
-
 #endif /*HASHMAP_H_*/

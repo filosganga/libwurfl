@@ -48,7 +48,7 @@ linkedlist_node_t* linkedlist_node_create(linkedlist_t* list, const void *item) 
 	linkedlist_node_t* to_add = NULL;
 
 	to_add = malloc(sizeof(linkedlist_node_t));
-	to_add->item = item;
+	to_add->item = (void*)item;
 
 	return to_add;
 }
@@ -315,16 +315,3 @@ int linkedlist_foreach(linkedlist_t* list, coll_functor_f* functor, void* functo
 
 	return finished;
 }
-
-void linkedlist_toarray(linkedlist_t* list, void** array) {
-
-	assert(list!=NULL);
-	assert(array!=NULL);
-
-	functor_toarray_data_t functor_data;
-	functor_data.index = 0;
-	functor_data.array = array;
-
-	linkedlist_foreach(list, &functor_toarray, &functor_data);
-}
-

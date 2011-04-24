@@ -113,11 +113,14 @@ static void node_free(trie_t* trie, trie_node_t* node) {
 
 static bool node_foreach(trie_node_t* current, int32_t msd, coll_functor_f* functor, void* functor_data) {
 
-	if(current->msd >= msd) {
+	if(current->msd <= msd) {
 		return false;
 	}
 	else {
-		bool finished = functor(current->value, functor_data);
+		void* keyValue[2];
+		keyValue[0] = current->key;
+		keyValue[1] = current->value;
+		bool finished = functor(keyValue, functor_data);
 		finished = finished || node_foreach(current->left, current->msd, functor, functor_data);
 		finished = finished || node_foreach(current->right, current->msd, functor, functor_data);
 		return finished;
@@ -228,6 +231,12 @@ void* trie_search(trie_t* trie, const void* key) {
 bool trie_foreach(trie_t* trie, coll_functor_f* functor, void* functor_data) {
 	return node_foreach(trie->root->left, -1, functor, functor_data);
 }
+
+bool trie_search_foreach(trie_t* trie, const void* key, coll_functor_f* functor, void* functor_data) {
+	trie_node_t* nearest = node_search(trie->root->left, key, -1);
+	return node_foreach(nearest, -1, functor, functor_data);
+}
+
 
 
 
