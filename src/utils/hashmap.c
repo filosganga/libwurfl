@@ -41,7 +41,7 @@ bool item_eq(const void* litem, const void* ritem) {
 	return lhashmap_item->owner->key_equals(lhashmap_item->key, rhashmap_item->key);
 }
 
-hashmap_item_t* item_create(hashmap_t* hashmap, const void* key, const void* item) {
+hashmap_item_t* item_init(hashmap_t* hashmap, const void* key, const void* item) {
 
 	hashmap_item_t* hashmap_item = malloc(sizeof(hashmap_item_t));
 	hashmap_item->key = key;
@@ -56,7 +56,7 @@ typedef struct {
 	void* data;
 } item_destroy_data_t;
 
-void item_destroy(void* item, const void* data) {
+void item_free(void* item, const void* data) {
 
 	item_destroy_data_t* destroy_data = data;
 	hashmap_item_t* hashmap_item = item;
@@ -94,10 +94,22 @@ typedef struct {
 
 bool item_functor(const void* item, void* data) {
 
-	hashmap_item_t* hashmap_item = item;
+	hashmap_item_t* hashmap_item = (hashmap_item_t*)item;
 	item_functor_data_t* functor_data = data;
 
 	return functor_data->functor(hashmap_item->item, functor_data->data);
+}
+
+bool kv_functor(const void* item, void* data) {
+
+	hashmap_item_t* hashmap_item = (hashmap_item_t*)item;
+	item_functor_data_t* functor_data = data;
+
+	void* kv[2];
+	kv[0] = hashmap_item->key;
+	kv[1] = hashmap_item->item;
+
+	return functor_data->functor(kv, functor_data->data);
 }
 
 bool putall_functor(const void* item, void* data) {
@@ -151,7 +163,7 @@ void hashmap_free(hashmap_t* map, coll_unduper_f* unduper, void* unduper_data) {
 	item_destroy_data.unduper = unduper;
 	item_destroy_data.data = unduper_data;
 
-	hashtable_free(map->hashtable, &item_destroy, &item_destroy_data);
+	hashtable_free(map->hashtable, &item_free, &item_destroy_data);
 	free(map);
 }
 
@@ -161,7 +173,7 @@ void* hashmap_put(hashmap_t* map, const void* key, const void* item) {
 	assert(map!=NULL);
 	assert(key!=NULL);
 
-	hashmap_item_t* hashmap_item = item_create(map, key, item);
+	hashmap_item_t* hashmap_item = item_init(map, key, item);
 	hashmap_item_t* replaced_item = hashtable_add(map->hashtable, hashmap_item);
 
 	void *replaced = NULL;
@@ -251,7 +263,7 @@ void hashmap_clear(hashmap_t* map, coll_unduper_f* unduper, void* unduper_data) 
 	item_destroy_data.unduper = unduper;
 	item_destroy_data.data = unduper_data;
 
-	hashtable_clear(map->hashtable, &item_destroy, &item_destroy_data);
+	hashtable_clear(map->hashtable, &item_free, &item_destroy_data);
 }
 
 //void* hashmap_find(hashmap_t* map, coll_predicate_t* predicate, void* predicate_data) {
@@ -278,6 +290,18 @@ void hashmap_clear(hashmap_t* map, coll_unduper_f* unduper, void* unduper_data) 
 //}
 
 bool hashmap_foreach(hashmap_t* hashmap, coll_functor_f* functor, void* functor_data) {
+
+	assert(hashmap!=NULL);
+	assert(functor!=NULL);
+
+	item_functor_data_t item_functor_data;
+	item_functor_data.functor = functor;
+	item_functor_data.data = functor_data;
+
+	return hashtable_foreach(hashmap->hashtable, &kv_functor, &item_functor_data);
+}
+
+bool hashmap_foreach_value(hashmap_t* hashmap, coll_functor_f* functor, void* functor_data) {
 
 	assert(hashmap!=NULL);
 	assert(functor!=NULL);

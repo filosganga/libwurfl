@@ -21,6 +21,7 @@
 #include "devicedef.h"
 #include "utils/error.h"
 #include "utils/utils.h"
+#include "utils/hashmap.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,6 +30,15 @@
 #include <errno.h>
 
 extern int errno;
+
+void explode_capabilities(hashmap_t* capabilities, const devicedef_t* devicedef, repository_t* repository) {
+
+	if(devicedef->fall_back!=NULL && strlen(devicedef->fall_back)>0 && strcmp(devicedef->fall_back, "root")!=0) {
+		explode_capabilities(capabilities, repository_get(repository, devicedef->fall_back), repository);
+	}
+
+	hashmap_putall(capabilities, devicedef->capabilities);
+}
 
 device_t* device_init(repository_t* repository, const devicedef_t* devicedef) {
 

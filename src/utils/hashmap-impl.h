@@ -38,9 +38,9 @@ struct _hashmap_t {
 
 // Item *******************************************************************
 
-hashmap_item_t* item_create(hashmap_t* hashmap, const void* key, const void* item);
+hashmap_item_t* item_init(hashmap_t* hashmap, const void* key, const void* item);
 
-void item_destroy(void* item, const void* xtra);
+void item_free(void* item, const void* xtra);
 
 bool item_eq(const void* litem, const void* ritem);
 

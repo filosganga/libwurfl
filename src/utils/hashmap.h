@@ -53,10 +53,12 @@ bool hashmap_empty(hashmap_t* hashmap);
 
 bool hashmap_contains(hashmap_t* hashmap, const void* key);
 
-bool hashmap_contains_item(hashmap_t* hashmap, const void* item);
+bool hashmap_contains_value(hashmap_t* hashmap, const void* item);
 
 
 bool hashmap_foreach(hashmap_t* hashmap, coll_functor_f* functor, void* functor_data);
+
+bool hashmap_foreach_value(hashmap_t* hashmap, coll_functor_f* functor, void* functor_data);
 
 //void* hashmap_find(hashmap_t* map, coll_predicate_f* predicate, void* predicate_data);
 

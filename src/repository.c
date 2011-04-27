@@ -116,7 +116,7 @@ bool repository_foreach(repository_t* repository, coll_functor_f* functor, void*
 	assert(repository != NULL);
 	assert(functor != NULL);
 
-	return hashmap_foreach(repository->devices, functor, functor_data);
+	return hashmap_foreach_value(repository->devices, functor, functor_data);
 }
 
 // Support functions ******************************************************
@@ -157,7 +157,7 @@ static void apply_patch(repository_t* repository, const char* path) {
 	rdata.devices = hashmap_init(&string_eq, &string_hash, &devices_opts);
 	parser_parse(path, repository->strings, &rdata);
 
-	hashmap_foreach(rdata.devices, &patch_device, repository->devices);
+	hashmap_foreach_value(rdata.devices, &patch_device, repository->devices);
 }
 
 

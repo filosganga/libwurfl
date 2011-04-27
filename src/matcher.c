@@ -110,7 +110,7 @@ devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
 		if(!toarray_data.array) {
 			error(1, errno, "error allocating candidates array");
 		}
-		hashmap_foreach(pfx_data.map, &functor_toarray, &toarray_data);
+		hashmap_foreach_value(pfx_data.map, &functor_toarray, &toarray_data);
 
 		return match(toarray_data.array, toarray_data.size, wk_user_agent, LD_TOLL);
 	}
