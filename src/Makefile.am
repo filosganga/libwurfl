@@ -11,8 +11,8 @@ libwurfl_la_SOURCES = \
 	devicedef.c \
 	repository.c \
 	matcher.c \
+	normalizer.c \
 	sax2.c \
-	utils/chain.c \
 	utils/functors.c \
 	utils/hashmap.c \
 	utils/hashtable.c \

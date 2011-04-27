@@ -22,6 +22,7 @@ stamp-h1
 *.log
 *.cache
 *.status
+Makefile
 
 src/test
 src/test-static

@@ -27,9 +27,9 @@
 
 int test_wurfl() {
 
-	const char* root = "etc/wurfl.xml";
+	const char* root = "../etc/wurfl.xml";
 	//const char* patches[] = {};
-	const char* patches[] = {"etc/web_browsers_patch.xml", NULL};
+	const char* patches[] = {"../etc/web_browsers_patch.xml", NULL};
 
 	wurfl_t* wurfl = wurfl_init(root, patches);
 

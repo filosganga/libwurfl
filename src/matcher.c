@@ -18,7 +18,9 @@
 
 #include "matcher.h"
 
+#include "normalizer.h"
 #include "devicedef.h"
+#include "utils/linkedlist.h"
 #include "utils/patricia.h"
 #include "utils/error.h"
 #include "utils/functors.h"
@@ -34,6 +36,7 @@
 extern int errno;
 
 struct _matcher_t {
+	normalizer_t* normalizer;
 	trie_t* prefix;
 };
 
@@ -41,6 +44,10 @@ typedef struct {
 	const char* needle;
 	hashmap_t* map;
 } find_data_t;
+
+static uint32_t levenshtein_distance(const char* s, const char* t, uint32_t tolerance);
+
+static devicedef_t* match(devicedef_t** candidates, size_t candidates_size, const char* needle, uint32_t tolerance);
 
 static bool find(void* item, const void* xtra) {
 	void** kv = (void**)item;
@@ -60,8 +67,11 @@ matcher_t* matcher_init(repository_t* repo) {
 		error(1, errno, "error allocating matcher");
 	}
 
+	matcher->normalizer = normalizer_init();
+
 	matcher->prefix = trie_init(NULL, NULL, NULL);
 
+	// TODO Apply normalizers too
 	functor_totrie_data_t totrie_data;
 	totrie_data.trie = matcher->prefix;
 	totrie_data.key_get = &devicedef_user_agent;
@@ -72,60 +82,81 @@ matcher_t* matcher_init(repository_t* repo) {
 
 void matcher_destroy(matcher_t* matcher) {
 
+	normalizer_free(matcher->normalizer);
 	trie_destroy(matcher->prefix, NULL, NULL);
 	free(matcher);
 }
 
+devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
+
+	char wk_user_agent[8 * 1024];
+	memset(wk_user_agent, '\0', 8 * 1024);
+
+	normalizer_apply(matcher->normalizer, wk_user_agent, user_agent);
+
+
+	find_data_t pfx_data;
+	pfx_data.needle = user_agent;
+	pfx_data.map = hashmap_create(&string_eq, &string_hash, NULL);
+	if(trie_search_foreach(matcher->prefix, wk_user_agent, &find, &pfx_data)) {
+		return hashmap_get(pfx_data.map, user_agent);
+	}
+	else {
+
+		functor_toarray_data_t toarray_data;
+		toarray_data.index = 0;
+		toarray_data.size = hashmap_size(pfx_data.map);
+		toarray_data.array = malloc(sizeof(devicedef_t*) * toarray_data.size);
+		if(!toarray_data.array) {
+			error(1, errno, "error allocating candidates array");
+		}
+		hashmap_foreach(pfx_data.map, &functor_toarray, &toarray_data);
+
+		return match(toarray_data.array, toarray_data.size, wk_user_agent, LD_TOLL);
+	}
+}
+
 /**
- * <p>
- * Find the Levenshtein distance between two Strings.
- * </p>
+ * Searches for the string which has the minor Levenshtein distance from
+ * given needle. If there is not candidates within given tolerance, it
+ * returns null.
  *
- * <p>
- * This is the number of changes needed to change one String into another,
- * where each change is a single character modification (deletion, insertion
- * or substitution).
- * </p>
- *
- * <p>
- * The previous implementation of the Levenshtein distance algorithm was
- * from <a
- * href="http://www.merriampark.com/ld.htm">http://www.merriampark.com
- * /ld.htm</a>
- * </p>
- *
- * <p>
- * Chas Emerick has written an implementation in Java, which avoids an
- * OutOfMemoryError which can occur when my Java implementation is used with
- * very large strings.<br>
- * This implementation of the Levenshtein distance algorithm is from <a
- * href="http://www.merriampark.com/ldjava.htm">http://www.merriampark.com/
- * ldjava.htm</a>
- * </p>
- *
- * <pre>
- * StringUtils.getLevenshteinDistance(null, *)             = IllegalArgumentException
- * StringUtils.getLevenshteinDistance(*, null)             = IllegalArgumentException
- * StringUtils.getLevenshteinDistance(&quot;&quot;,&quot;&quot;)               = 0
- * StringUtils.getLevenshteinDistance(&quot;&quot;,&quot;a&quot;)              = 1
- * StringUtils.getLevenshteinDistance(&quot;aaapppp&quot;, &quot;&quot;)       = 7
- * StringUtils.getLevenshteinDistance(&quot;frog&quot;, &quot;fog&quot;)       = 1
- * StringUtils.getLevenshteinDistance(&quot;fly&quot;, &quot;ant&quot;)        = 3
- * StringUtils.getLevenshteinDistance(&quot;elephant&quot;, &quot;hippo&quot;) = 7
- * StringUtils.getLevenshteinDistance(&quot;hippo&quot;, &quot;elephant&quot;) = 7
- * StringUtils.getLevenshteinDistance(&quot;hippo&quot;, &quot;zzzzzzzz&quot;) = 8
- * StringUtils.getLevenshteinDistance(&quot;hello&quot;, &quot;hallo&quot;)    = 1
- * </pre>
- *
- * @param s
- *            the first String, must not be null
- * @param t
- *            the second String, must not be null
+ * @param candidates
+ *            The SortedSet of possible candidates.
+ * @param needle
+ *            The String to match.
  * @param tolerance
- *           the minimum distance
- * @return result distance
- * @throws IllegalArgumentException
- *             if either String input <code>null</code>
+ *            the tolerance between needle and candidates.
+ *
+ * @return Matched candidate String.
+ */
+static devicedef_t* match(devicedef_t** candidates, size_t candidates_size, const char* needle, uint32_t tolerance) {
+
+	devicedef_t* match = NULL;
+
+	uint32_t needle_len = strlen(needle);
+	uint32_t best = tolerance;
+	uint32_t current = needle_len;
+
+	uint32_t i;
+	for(i=0; current>0 && i<candidates_size; i++) {
+		devicedef_t* candidate = candidates[i];
+
+		if(abs(strlen(candidate->user_agent) - needle_len) < tolerance) {
+			current = levenshtein_distance(candidate->user_agent, needle, tolerance);
+			if(current < best || current == 0) {
+				best = current;
+				match = candidate;
+			}
+		}
+
+	}
+
+	return match;
+}
+
+/**
+ * Find the Levenshtein distance between two Strings.
  */
 static uint32_t levenshtein_distance(const char* s, const char* t, uint32_t tolerance) {
 	assert(s != NULL);
@@ -154,7 +185,6 @@ static uint32_t levenshtein_distance(const char* s, const char* t, uint32_t tole
 	 * one does not cause an out of memory condition when calculating the LD
 	 * over two very large strings.
 	 */
-
 	size_t n = strlen(s); // length of s
 	size_t m = strlen(t); // length of t
 
@@ -211,64 +241,3 @@ static uint32_t levenshtein_distance(const char* s, const char* t, uint32_t tole
 	return p[n];
 }
 
-/**
- * Searches for the string which has the minor Levenshtein distance from
- * given needle. If there is not candidates within given tolerance, it
- * returns null.
- *
- * @param candidates
- *            The SortedSet of possible candidates.
- * @param needle
- *            The String to match.
- * @param tolerance
- *            the tolerance between needle and candidates.
- *
- * @return Matched candidate String.
- */
-static devicedef_t* match(devicedef_t** candidates, size_t candidates_size, const char* needle, uint32_t tolerance) {
-
-	devicedef_t* match = NULL;
-
-	uint32_t needle_len = strlen(needle);
-	uint32_t best = tolerance;
-	uint32_t current = needle_len;
-
-	uint32_t i;
-	for(i=0; current>0 && i<candidates_size; i++) {
-		devicedef_t* candidate = candidates[i];
-
-		if(abs(strlen(candidate->user_agent) - needle_len) < tolerance) {
-			current = levenshtein_distance(candidate->user_agent, needle, tolerance);
-			if(current < best || current == 0) {
-				best = current;
-				match = candidate;
-			}
-		}
-
-	}
-
-	return match;
-}
-
-devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
-
-	find_data_t pfx_data;
-	pfx_data.needle = user_agent;
-	pfx_data.map = hashmap_create(&string_eq, &string_hash, NULL);
-	if(trie_search_foreach(matcher->prefix, user_agent, &find, &pfx_data)) {
-		return hashmap_get(pfx_data.map, user_agent);
-	}
-	else {
-
-		functor_toarray_data_t toarray_data;
-		toarray_data.index = 0;
-		toarray_data.size = hashmap_size(pfx_data.map);
-		toarray_data.array = malloc(sizeof(devicedef_t*) * toarray_data.size);
-		if(!toarray_data.array) {
-			error(1, errno, "error allocating candidates array");
-		}
-		hashmap_foreach(pfx_data.map, &functor_toarray, &toarray_data);
-
-		return match(toarray_data.array, toarray_data.size, user_agent, LD_TOLL);
-	}
-}
