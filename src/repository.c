@@ -37,8 +37,7 @@
 extern int errno;
 
 struct _repository_t {
-	const char* version;
-	hashtable_t* strings;
+	char* version;
 	hashmap_t* devices;
 };
 
@@ -66,9 +65,6 @@ repository_t* repository_init(const char* root, const char** patches) {
 		error(1,errno, "error allocating repository");
 	}
 
-	hashtable_options_t strings_opts = {1000, 1.5f};
-	repository->strings = hashtable_init(&string_eq, &string_hash, &strings_opts);
-
 	init_devices(repository, root);
 	repository_patch(repository, patches);
 
@@ -78,7 +74,6 @@ repository_t* repository_init(const char* root, const char** patches) {
 void repository_free(repository_t* repository) {
 
 	hashmap_free(repository->devices, &devicedef_undupe, NULL);
-	hashtable_free(repository->strings, &coll_default_unduper, NULL);
 
 	free(repository);
 }
@@ -123,11 +118,11 @@ bool repository_foreach(repository_t* repository, coll_functor_f* functor, void*
 
 static void init_devices(repository_t* repository, const char* path) {
 
-	resource_data_t root_data;
+	parser_data_t root_data;
 
 	hashmap_options_t devices_opts = {10000, 1.5f};
 	root_data.devices = hashmap_init(&string_eq, &string_hash, &devices_opts);
-	parser_parse(path, repository->strings, &root_data);
+	parser_parse(path, &root_data);
 
 	repository->devices = root_data.devices;
 	repository->version = root_data.version;
@@ -152,10 +147,10 @@ static bool patch_device(const void* item, void* xtra) {
 
 static void apply_patch(repository_t* repository, const char* path) {
 
-	resource_data_t rdata;
+	parser_data_t rdata;
 	hashmap_options_t devices_opts = {1024, 1.5f};
 	rdata.devices = hashmap_init(&string_eq, &string_hash, &devices_opts);
-	parser_parse(path, repository->strings, &rdata);
+	parser_parse(path, &rdata);
 
 	hashmap_foreach_value(rdata.devices, &patch_device, repository->devices);
 }

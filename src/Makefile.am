@@ -21,7 +21,7 @@ libwurfl_la_SOURCES = \
 	utils/error.c \
 	utils/utils.c 
 	
-libwurfl_la_LDFLAGS = -version-info 1:0:0
+libwurfl_la_LDFLAGS = -version-info 0:0:0
 libwurfl_la_CPPFLAGS = -I/usr/include -I/usr/local/include -I/usr/include/libxml2
 
 check_PROGRAMS = test

@@ -59,13 +59,10 @@
 extern int errno;
 
 typedef struct {
-	iconv_t* iconv;
+	hashmap_t* devices;
+	char* version;
 
 	devicedef_t* current_devicedef;
-
-	hashtable_t* strings;
-	hashmap_t* devices;
-
 } parse_context_t;
 
 static char* create_string(const xmlChar* string, parse_context_t* context) {
@@ -84,18 +81,19 @@ static char* create_string(const xmlChar* string, parse_context_t* context) {
 
 
 	iconv_t* cd = iconv_open("ASCII", "UTF-8");
-	if(cd == -1) {
+	if(cd < 0) { // returns -1 on error
 		// It is very improbable
 		error(2, errno, "iconv does not support UTF-8 or ASCII");
 	}
 	size_t converted = iconv(cd, &input, &inputleft, &tmpptr, &outputleft);
-	if(converted == -1) {
+	if(converted < 0) {
 		error(2, errno, "error converting string");
 	}
 
 	iconv_close(cd);
 
-	char *output = malloc(sizeof(char) * (strlen(tmp) + 1));
+	// TODO intern the strings
+	char* output = malloc(sizeof(char) * (strlen(tmp) + 1));
 	if(!output) {
 		error(1, errno, "error allocating string");
 	}
@@ -104,9 +102,9 @@ static char* create_string(const xmlChar* string, parse_context_t* context) {
 	return output;
 }
 
-static char* get_attribute(parse_context_t* context, int nb_attributes,	const xmlChar** attributes, const xmlChar* name) {
+static xmlChar* get_attribute(parse_context_t* context, int nb_attributes,	const xmlChar** attributes, const xmlChar* name) {
 
-	char *value=NULL;
+	xmlChar *value=NULL;
 
 	int index;
 	for(index=0; index<nb_attributes && value==NULL; index++) {
@@ -121,7 +119,7 @@ static char* get_attribute(parse_context_t* context, int nb_attributes,	const xm
 			const xmlChar *valueEnd = attributes[att_index+4];
 
 			int value_size = valueEnd - valueBegin;
-			value = create_string(xmlStrsub(valueBegin, 0, value_size), context);
+			value = xmlStrsub(valueBegin, 0, value_size);
 		}
 
 	}
@@ -129,14 +127,60 @@ static char* get_attribute(parse_context_t* context, int nb_attributes,	const xm
 	return value;
 }
 
+static devicedef_t* create_devicedef(parse_context_t* context, int nb_attributes, const xmlChar** attributes) {
+
+	devicedef_t* devicedef = malloc(sizeof(devicedef_t));
+	if(devicedef==NULL) {
+		error(1, errno, "error allocating device");
+	}
+
+	hashmap_options_t caps_opts = {400, .75f};
+	devicedef->capabilities = hashmap_init(&string_eq, &string_hash, &caps_opts);
+
+	const xmlChar* id = get_attribute(context, nb_attributes, attributes, ATTR_ID);
+	const xmlChar* user_agent = get_attribute(context, nb_attributes, attributes, ATTR_USER_AGENT);
+	const xmlChar* fallback = get_attribute(context, nb_attributes, attributes, ATTR_FALL_BACK);
+	const xmlChar* actual_device_root = get_attribute(context, nb_attributes, attributes, ATTR_ACTUAL_DEVICE_ROOT);
+
+	if(!id || xmlStrlen(id)==0) {
+		error(2,0,"The device id must be != null");
+	}
+	else {
+		devicedef->id = create_string(id, context);
+	}
+
+	if(!user_agent || xmlStrlen(user_agent)==0) {
+		devicedef->user_agent = NULL;
+	}
+	else {
+		devicedef->user_agent = create_string(user_agent, context);
+	}
+
+	if(xmlStrEqual(fallback, BAD_CAST("root"))) {
+		devicedef->fall_back = NULL;
+	}
+	else {
+		devicedef->fall_back = create_string(fallback, context);
+	}
+	devicedef->actual_device_root = xmlStrEqual(actual_device_root, BAD_CAST("true"));
+
+	return devicedef;
+
+
+}
+
 // Handlers ***************************************************************
 
 static void start_capability(parse_context_t* context, int nb_attributes, const xmlChar** attributes) {
 
-	const char* name = get_attribute(context, nb_attributes, attributes, ATTR_NAME);
+	const xmlChar* xml_name = get_attribute(context, nb_attributes, attributes, ATTR_NAME);
 
-	if(name) {
-		const char* value = get_attribute(context, nb_attributes, attributes, ATTR_VALUE);
+	if(xml_name) {
+		const xmlChar* xml_value = get_attribute(context, nb_attributes, attributes, ATTR_VALUE);
+
+		const char* name = create_string(xml_name, context);
+		const char* value = create_string(xml_value, context);
+
 		hashmap_put(context->current_devicedef->capabilities, name, value);
 	}
 	else {
@@ -150,30 +194,12 @@ static void end_capability(parse_context_t* context) {
 
 static void start_device(parse_context_t* context, int nb_attributes, const xmlChar** attributes) {
 
-	devicedef_t* devicedef = malloc(sizeof(devicedef_t));
-	if(devicedef==NULL) {
-		error(1, errno, "error allocating device");
-	}
-
-	hashmap_options_t caps_opts = {400, .75f};
-	devicedef->capabilities = hashmap_init(&string_eq, &string_hash, &caps_opts);
-
-	devicedef->id = get_attribute(context, nb_attributes, attributes, ATTR_ID);
-	devicedef->user_agent = get_attribute(context, nb_attributes, attributes, ATTR_USER_AGENT);
-	devicedef->fall_back = get_attribute(context, nb_attributes, attributes, ATTR_FALL_BACK);
-
-	char* actual_device_root = get_attribute(context, nb_attributes, attributes, ATTR_ACTUAL_DEVICE_ROOT);
-	devicedef->actual_device_root = actual_device_root!=NULL && strcmp(actual_device_root, "true") == 0;
-
-	context->current_devicedef = devicedef;
+	context->current_devicedef = create_devicedef(context, nb_attributes, attributes);
 }
 
 static void end_device(parse_context_t* context) {
 
-	//_debug(context->logger, __FILE__, __LINE__, "Adding %dth device: %s", context->size, devicedef->id);
 	hashmap_put(context->devices, context->current_devicedef->id, context->current_devicedef);
-
-	//fprintf(stderr, "Added device: %s\n", context->current_devicedef->id);
 
 	// reset context
 	context->current_devicedef = NULL;
@@ -251,7 +277,7 @@ static void sax_nop(void *ctx) {
 /**
  * Parse function
  */
-int parser_parse(const char* path, hashtable_t* strings, resource_data_t* resource_data) {
+int parser_parse(const char* path, parser_data_t* resource_data) {
 
 	xmlSAXHandler saxHandler;
 	memset(&saxHandler, 0, sizeof(saxHandler));
@@ -278,7 +304,6 @@ int parser_parse(const char* path, hashtable_t* strings, resource_data_t* resour
 	memset(&context, 0, sizeof(context));
 
 	context.devices = resource_data->devices;
-	context.strings = strings;
 	context.current_devicedef = NULL;
 
 	int sax_error = xmlSAXUserParseFile(&saxHandler, &context, path);
