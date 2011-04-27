@@ -41,7 +41,7 @@ typedef struct {
 int functor_toarray(const void* item, void* data);
 
 typedef struct {
-	trie_t* trie;
+	patricia_t* trie;
 	void* (*key_get)(const void* item);
 } functor_totrie_data_t;
 

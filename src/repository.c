@@ -47,7 +47,7 @@ static void devicedef_undupe(void* item, const void* data) {
 
 	devicedef_t* devicedef = item;
 
-	hashmap_destroy(devicedef->capabilities, &coll_default_unduper, NULL);
+	hashmap_free(devicedef->capabilities, &coll_default_unduper, NULL);
 	free(devicedef);
 }
 
@@ -59,7 +59,7 @@ static void apply_patch(repository_t* repository, const char* path);
 
 // Implementations ********************************************************
 
-repository_t* repository_create(const char* root, const char** patches) {
+repository_t* repository_init(const char* root, const char** patches) {
 
 	repository_t* repository = malloc(sizeof(repository_t));
 	if(!repository) {
@@ -67,7 +67,7 @@ repository_t* repository_create(const char* root, const char** patches) {
 	}
 
 	hashtable_options_t strings_opts = {1000, 1.5f};
-	repository->strings = hashtable_create(&string_eq, &string_hash, &strings_opts);
+	repository->strings = hashtable_init(&string_eq, &string_hash, &strings_opts);
 
 	init_devices(repository, root);
 	repository_patch(repository, patches);
@@ -75,10 +75,10 @@ repository_t* repository_create(const char* root, const char** patches) {
 	return repository;
 }
 
-void repository_destroy(repository_t* repository) {
+void repository_free(repository_t* repository) {
 
-	hashmap_destroy(repository->devices, &devicedef_undupe, NULL);
-	hashtable_destroy(repository->strings, &coll_default_unduper, NULL);
+	hashmap_free(repository->devices, &devicedef_undupe, NULL);
+	hashtable_free(repository->strings, &coll_default_unduper, NULL);
 
 	free(repository);
 }
@@ -126,7 +126,7 @@ static void init_devices(repository_t* repository, const char* path) {
 	resource_data_t root_data;
 
 	hashmap_options_t devices_opts = {10000, 1.5f};
-	root_data.devices = hashmap_create(&string_eq, &string_hash, &devices_opts);
+	root_data.devices = hashmap_init(&string_eq, &string_hash, &devices_opts);
 	parser_parse(path, repository->strings, &root_data);
 
 	repository->devices = root_data.devices;
@@ -141,7 +141,7 @@ static bool patch_device(const void* item, void* xtra) {
 	devicedef_t* patching = hashmap_get(devices, patcher->id);
 	if(patching) {
 		devicedef_patch(patching, patcher);
-		devicedef_destroy(patcher);
+		devicedef_free(patcher);
 	}
 	else {
 		hashmap_put(devices, patcher->id, patcher);
@@ -154,7 +154,7 @@ static void apply_patch(repository_t* repository, const char* path) {
 
 	resource_data_t rdata;
 	hashmap_options_t devices_opts = {1024, 1.5f};
-	rdata.devices = hashmap_create(&string_eq, &string_hash, &devices_opts);
+	rdata.devices = hashmap_init(&string_eq, &string_hash, &devices_opts);
 	parser_parse(path, repository->strings, &rdata);
 
 	hashmap_foreach(rdata.devices, &patch_device, repository->devices);

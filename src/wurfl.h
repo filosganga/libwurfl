@@ -35,7 +35,7 @@ wurfl_t* wurfl_init(const char* root, const char** patches);
 /**
  * This function destroy the wurfl
  */
-void wurfl_destroy(wurfl_t* wurfl);
+void wurfl_free(wurfl_t* wurfl);
 
 /**
  * This is the match function

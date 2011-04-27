@@ -26,7 +26,7 @@ typedef struct _matcher_t matcher_t;
 
 matcher_t* matcher_init(repository_t* repo);
 
-void matcher_destroy(matcher_t* matcher);
+void matcher_free(matcher_t* matcher);
 
 devicedef_t* matcher_match(matcher_t*, const char* user_agent);
 

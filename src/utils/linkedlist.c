@@ -19,24 +19,15 @@
 #include "linkedlist-impl.h"
 
 #include "functors.h"
+#include "error.h"
 
 #include <stdlib.h>
-#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <errno.h>
 #include <assert.h>
 
-static linkedlist_t* list_alloc() {
-
-	linkedlist_t* list = NULL;
-
-	list = malloc(sizeof(linkedlist_t));
-
-	return list;
-}
-
-void linkedlist_free(linkedlist_t* list) {
-
-	free(list);
-}
+extern int errno;
 
 void linkedlist_node_destroy(linkedlist_t* list, linkedlist_node_t *to_remove) {
 
@@ -45,16 +36,18 @@ void linkedlist_node_destroy(linkedlist_t* list, linkedlist_node_t *to_remove) {
 
 linkedlist_node_t* linkedlist_node_create(linkedlist_t* list, const void *item) {
 
-	linkedlist_node_t* to_add = NULL;
+	linkedlist_node_t* to_add = malloc(sizeof(linkedlist_node_t));
+	if(!to_add) {
+		error(1, errno, "error allocating memory for new node");
+	}
 
-	to_add = malloc(sizeof(linkedlist_node_t));
 	to_add->item = (void*)item;
 
 	return to_add;
 }
 
 linkedlist_node_t* linkedlist_get_nodeat(linkedlist_t* list, uint32_t index) {
-	linkedlist_node_t* toGet = NULL;
+	linkedlist_node_t* to_get = NULL;
 	int i;
 
 	assert(list!=NULL);
@@ -62,18 +55,18 @@ linkedlist_node_t* linkedlist_get_nodeat(linkedlist_t* list, uint32_t index) {
 	if (list->size > index) {
 
 		if (index < list->size / 2) {
-			toGet = list->start;
+			to_get = list->start;
 			for (i = 0; i < index; i++)
-				toGet = toGet->next;
+				to_get = to_get->next;
 		} else {
-			toGet = list->end;
+			to_get = list->end;
 			for (i = list->size - 1; i > index; i--)
-				toGet = toGet->prev;
+				to_get = to_get->prev;
 		}
 
 	} // list->size>index
 
-	return toGet;
+	return to_get;
 
 } // list_getNodeAtIndex
 
@@ -231,29 +224,29 @@ void* linkedlist_get(linkedlist_t* list, uint32_t index) {
 
 // Modify list functions **************************************************
 
-linkedlist_t* linkedlist_create(coll_equals_f* item_equals) {
+linkedlist_t* linkedlist_init(coll_equals_f* item_equals) {
 
 	assert(item_equals != NULL);
 
-	linkedlist_t* list = list_alloc();
+	linkedlist_t* list = malloc(sizeof(linkedlist_t));
+	if(!list) {
+		error(1, errno, "error allocating memory for list");
+	}
 
 	list->start = NULL;
 	list->end = NULL;
 	list->size = 0;
 	list->item_equals = item_equals;
 
-	/* initialize statistics */
-	list->stats.errors = COLL_OK;
-
 	return list;
 }
 
-void linkedlist_destroy(linkedlist_t* list, coll_unduper_f* unduper, void* unduper_data) {
+void linkedlist_free(linkedlist_t* list, coll_unduper_f* unduper, void* unduper_data) {
 
 	assert(list != NULL);
 
 	linkedlist_clear(list, unduper, unduper_data);
-	linkedlist_free(list);
+	free(list);
 }
 
 void linkedlist_clear(linkedlist_t* list, coll_unduper_f* unduper, void* unduper_data) {
@@ -284,28 +277,22 @@ void linkedlist_clear(linkedlist_t* list, coll_unduper_f* unduper, void* unduper
 
 }
 
-int linkedlist_empty(linkedlist_t* list) {
+bool linkedlist_empty(linkedlist_t* list) {
 
 	assert(list!=NULL);
 
 	return list->size == 0;
 }
 
-uint32_t linkedlist_size(linkedlist_t* list) {
+size_t linkedlist_size(linkedlist_t* list) {
 	assert(list!=NULL);
 
 	return list->size;
 }
 
-linkedliststatus_t linkedlist_status(linkedlist_t* list) {
-	assert(list!=NULL);
+bool linkedlist_foreach(linkedlist_t* list, coll_functor_f* functor, void* functor_data) {
 
-	return list->stats;
-}
-
-int linkedlist_foreach(linkedlist_t* list, coll_functor_f* functor, void* functor_data) {
-
-	int finished = 0;
+	int finished = false;
 	linkedlist_node_t* current = list->start;
 
 	while (current != NULL && !finished) {

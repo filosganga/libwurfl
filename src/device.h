@@ -25,7 +25,7 @@
 
 typedef struct _device_t device_t;
 
-void device_destroy(device_t* device);
+void device_free(device_t* device);
 
 char* device_id(const device_t* device);
 

@@ -21,6 +21,7 @@
 
 #include "linkedlist.h"
 
+#include <stdlib.h>
 #include <stdint.h>
 
 struct _linkedlist_node_t
@@ -40,13 +41,8 @@ struct _linkedlist_t {
 	coll_equals_f* item_equals;
 
 	/* state */
-	uint32_t size;
-	linkedliststatus_t stats;
+	size_t size;
 };
-
-/* Libera la memoria precedentemente allocata tramite list_allocate().
- * pre: list!= NULL, list deve puntare ad un area allocata tramite list_allocate() */
-void linkedlist_free(linkedlist_t* list);
 
 /* Alloca un nodo della lista.
  * pre: list!=NULL

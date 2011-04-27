@@ -47,16 +47,16 @@ wurfl_t* wurfl_init(const char* root, const char** patches) {
 		error(1,errno,"error allocating memory to wurfl");
 	}
 
-	wurfl->repository = repository_create(root, patches);
+	wurfl->repository = repository_init(root, patches);
 	wurfl->matcher = matcher_init(wurfl->repository);
 
 	return wurfl;
 }
 
-void wurfl_destroy(wurfl_t* wurfl) {
+void wurfl_free(wurfl_t* wurfl) {
 
-	matcher_destroy(wurfl->matcher);
-	repository_destroy(wurfl->repository);
+	matcher_free(wurfl->matcher);
+	repository_free(wurfl->repository);
 
 	free(wurfl);
 }
@@ -65,7 +65,7 @@ device_t* wurfl_match(const wurfl_t* wurfl, const char* user_agent) {
 
 	devicedef_t* matched = matcher_match(wurfl->matcher, user_agent);
 
-	return device_create(wurfl->repository, matched);
+	return device_init(wurfl->repository, matched);
 }
 
 

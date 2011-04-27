@@ -37,7 +37,7 @@ extern int errno;
 
 struct _matcher_t {
 	normalizer_t* normalizer;
-	trie_t* prefix;
+	patricia_t* prefix;
 };
 
 typedef struct {
@@ -69,7 +69,7 @@ matcher_t* matcher_init(repository_t* repo) {
 
 	matcher->normalizer = normalizer_init();
 
-	matcher->prefix = trie_init(NULL, NULL, NULL);
+	matcher->prefix = patricia_init(NULL, NULL, NULL);
 
 	// TODO Apply normalizers too
 	functor_totrie_data_t totrie_data;
@@ -80,10 +80,10 @@ matcher_t* matcher_init(repository_t* repo) {
 	return matcher;
 }
 
-void matcher_destroy(matcher_t* matcher) {
+void matcher_free(matcher_t* matcher) {
 
 	normalizer_free(matcher->normalizer);
-	trie_destroy(matcher->prefix, NULL, NULL);
+	patricia_free(matcher->prefix, NULL, NULL);
 	free(matcher);
 }
 
@@ -97,8 +97,8 @@ devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
 
 	find_data_t pfx_data;
 	pfx_data.needle = user_agent;
-	pfx_data.map = hashmap_create(&string_eq, &string_hash, NULL);
-	if(trie_search_foreach(matcher->prefix, wk_user_agent, &find, &pfx_data)) {
+	pfx_data.map = hashmap_init(&string_eq, &string_hash, NULL);
+	if(patricia_search_foreach(matcher->prefix, wk_user_agent, &find, &pfx_data)) {
 		return hashmap_get(pfx_data.map, user_agent);
 	}
 	else {

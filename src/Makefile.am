@@ -26,10 +26,10 @@ libwurfl_la_CPPFLAGS = -I/usr/include -I/usr/local/include -I/usr/include/libxml
 
 check_PROGRAMS = test
 
-test_static_SOURCES = test.c
-test_static_LDADD = libwurfl.la
-test_static_LDFLAGS = -static
-test_static_CPPFLAGS = -I/usr/include -I/usr/local/include -I/usr/include/libxml2
+test_SOURCES = test.c
+test_LDADD = libwurfl.la
+test_LDFLAGS = -static
+test_CPPFLAGS = -I/usr/include -I/usr/local/include -I/usr/include/libxml2
 
 TESTS = $(check_PROGRAMS)
 

@@ -40,7 +40,7 @@ int functor_toarray(const void* item, void* data) {
 int functor_totrie(const void* item, void* data) {
 	functor_totrie_data_t* functor_data = (functor_totrie_data_t*)data;
 
-	trie_put(functor_data->trie, functor_data->key_get(item), item);
+	patricia_put(functor_data->trie, functor_data->key_get(item), item);
 
 	return 0;
 }

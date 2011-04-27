@@ -38,33 +38,14 @@ int test_wurfl() {
 		fprintf(stderr, "Matched Device: %s\n", device_id(device));
 	}
 
-	wurfl_destroy(wurfl);
+	wurfl_free(wurfl);
 
 	return 0;
 }
-//
-//int test_repository() {
-//
-//	const char* main = "../etc/root.xml";
-//	const char* patches[] = {};
-//
-//	repository_t* repo = repository_create(main, patches);
-//
-//	fprintf(stderr, "Before foreach\n");
-//	repository_foreach(repo, &print_device, NULL);
-//
-//	return 0;
-//}
 
 
 
 int main(int argc, char **argv) {
-
-	//test_patricia();
-
-	// test_repository();
-
-	// test_patricia();
 
 	test_wurfl();
 

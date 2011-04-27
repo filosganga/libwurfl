@@ -147,7 +147,7 @@ normalizer_t* normalizer_init() {
 		assert(false);
 	}
 
-	normalizer->handlers = linkedlist_create(&ref_eq);
+	normalizer->handlers = linkedlist_init(&ref_eq);
 	linkedlist_add(normalizer->handlers, &normalize_yeswap);
 	linkedlist_add(normalizer->handlers, &normalize_babelfish);
 	linkedlist_add(normalizer->handlers, &normalize_uplink);
@@ -158,7 +158,7 @@ normalizer_t* normalizer_init() {
 
 void normalizer_free(normalizer_t* normalizer) {
 
-	linkedlist_destroy(normalizer->handlers, &coll_nop_unduper, NULL);
+	linkedlist_free(normalizer->handlers, &coll_nop_unduper, NULL);
 	regfree(normalizer->vdfnsn_regex);
 	free(normalizer);
 

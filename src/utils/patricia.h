@@ -25,20 +25,20 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct _trie_t trie_t;
+typedef struct _patricia_t patricia_t;
 
-trie_t* trie_init(coll_duper_f* key_dupe, coll_unduper_f* key_undupe, void* dupe_xtra);
+patricia_t* patricia_init(coll_duper_f* key_dupe, coll_unduper_f* key_undupe, void* dupe_xtra);
 
-void trie_destroy(trie_t* trie, coll_unduper_f* undupe, void* undupe_data);
+void patricia_free(patricia_t* trie, coll_unduper_f* undupe, void* undupe_data);
 
-void trie_put(trie_t* trie, const void* key, const void* value);
+void patricia_put(patricia_t* trie, const void* key, const void* value);
 
-void* trie_get(trie_t* trie, const void* key);
+void* patricia_get(patricia_t* trie, const void* key);
 
-void* trie_search(trie_t* trie, const void* key);
+void* patricia_search(patricia_t* trie, const void* key);
 
-bool trie_foreach(trie_t* trie, coll_functor_f* functor, void* functor_data);
+bool patricia_foreach(patricia_t* trie, coll_functor_f* functor, void* functor_data);
 
-bool trie_search_foreach(trie_t* trie, const void* key, coll_functor_f* functor, void* functor_data);
+bool patricia_search_foreach(patricia_t* trie, const void* key, coll_functor_f* functor, void* functor_data);
 
 #endif /* PATRICIA_H_ */

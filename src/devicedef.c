@@ -43,11 +43,13 @@ devicedef_t* devicedef_init(const char* id,
 	device->user_agent = user_agent;
 	device->fall_back = fallback;
 	device->capabilities = capabilities;
+
+	return device;
 }
 
-void devicedef_destroy(devicedef_t* device) {
+void devicedef_free(devicedef_t* device) {
 
-	hashmap_destroy(device->capabilities, &coll_nop_unduper, NULL);
+	hashmap_free(device->capabilities, &coll_nop_unduper, NULL);
 	free(device);
 }
 

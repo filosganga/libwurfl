@@ -156,7 +156,7 @@ static void start_device(parse_context_t* context, int nb_attributes, const xmlC
 	}
 
 	hashmap_options_t caps_opts = {400, .75f};
-	devicedef->capabilities = hashmap_create(&string_eq, &string_hash, &caps_opts);
+	devicedef->capabilities = hashmap_init(&string_eq, &string_hash, &caps_opts);
 
 	devicedef->id = get_attribute(context, nb_attributes, attributes, ATTR_ID);
 	devicedef->user_agent = get_attribute(context, nb_attributes, attributes, ATTR_USER_AGENT);

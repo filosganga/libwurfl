@@ -121,7 +121,7 @@ bool putall_functor(const void* item, void* data) {
 
 // Interface funcions *****************************************************
 
-hashmap_t* hashmap_create(coll_equals_f* key_equals, coll_hash_f* key_hash, hashmap_options_t* options) {
+hashmap_t* hashmap_init(coll_equals_f* key_equals, coll_hash_f* key_hash, hashmap_options_t* options) {
 
 	hashmap_t* map = malloc(sizeof(hashmap_t));
 
@@ -138,12 +138,12 @@ hashmap_t* hashmap_create(coll_equals_f* key_equals, coll_hash_f* key_hash, hash
 		hashtable_options.load_factor = 1.5f;
 	}
 
-	map->hashtable = hashtable_create(&item_eq, &item_hash, &hashtable_options);
+	map->hashtable = hashtable_init(&item_eq, &item_hash, &hashtable_options);
 
 	return map;
 }
 
-void hashmap_destroy(hashmap_t* map, coll_unduper_f* unduper, void* unduper_data) {
+void hashmap_free(hashmap_t* map, coll_unduper_f* unduper, void* unduper_data) {
 
 	assert(map!=NULL);
 
@@ -151,7 +151,7 @@ void hashmap_destroy(hashmap_t* map, coll_unduper_f* unduper, void* unduper_data
 	item_destroy_data.unduper = unduper;
 	item_destroy_data.data = unduper_data;
 
-	hashtable_destroy(map->hashtable, &item_destroy, &item_destroy_data);
+	hashtable_free(map->hashtable, &item_destroy, &item_destroy_data);
 	free(map);
 }
 

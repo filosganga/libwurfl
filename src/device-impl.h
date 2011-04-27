@@ -29,6 +29,6 @@ struct _device_t {
 	repository_t* repository;
 };
 
-device_t* device_create(repository_t* repository, const devicedef_t* devicedef);
+device_t* device_init(repository_t* repository, const devicedef_t* devicedef);
 
 #endif /* DEVICE_IMPL_H_ */

@@ -33,9 +33,9 @@ typedef struct {
 } hashtable_options_t;
 
 
-hashtable_t* hashtable_create(coll_equals_f* eq_fn, coll_hash_f* hash_fn, hashtable_options_t* options);
+hashtable_t* hashtable_init(coll_equals_f* eq_fn, coll_hash_f* hash_fn, hashtable_options_t* options);
 
-void hashtable_destroy(hashtable_t* hashtable, coll_unduper_f* unduper, void* unduper_data);
+void hashtable_free(hashtable_t* hashtable, coll_unduper_f* unduper, void* unduper_data);
 
 
 void* hashtable_get(hashtable_t* hashtable, const void* item);

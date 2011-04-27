@@ -27,13 +27,13 @@
 
 typedef struct _repository_t repository_t;
 
-repository_t* repository_create(const char* root, const char** patches);
+repository_t* repository_init(const char* root, const char** patches);
 
 void repository_reload(repository_t* repository, const char* root, const char** patches);
 
 void repository_patch(repository_t* repository, const char** patches);
 
-void repository_destroy(repository_t* repository);
+void repository_free(repository_t* repository);
 
 devicedef_t* repository_get(repository_t* repository, const char* id);
 

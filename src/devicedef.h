@@ -31,7 +31,7 @@ typedef struct {
 
 devicedef_t* devicedef_init(const char* id, const char* user_agent, const char* fallback, bool actual_device_root, hashmap_t* capabilities);
 
-void devicedef_destroy(devicedef_t* device);
+void devicedef_free(devicedef_t* device);
 
 char* devicedef_id(const devicedef_t* device);
 

@@ -30,7 +30,7 @@
 
 extern int errno;
 
-device_t* device_create(repository_t* repository, const devicedef_t* devicedef) {
+device_t* device_init(repository_t* repository, const devicedef_t* devicedef) {
 
 	assert(repository!=NULL);
 	assert(devicedef!=NULL);

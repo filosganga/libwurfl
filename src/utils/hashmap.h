@@ -31,9 +31,9 @@ typedef struct {
 	float load_factor;
 } hashmap_options_t;
 
-hashmap_t* hashmap_create(coll_equals_f* key_equals, coll_hash_f* key_hash, hashmap_options_t* options);
+hashmap_t* hashmap_init(coll_equals_f* key_equals, coll_hash_f* key_hash, hashmap_options_t* options);
 
-void hashmap_destroy(hashmap_t* hashmap, coll_unduper_f* unduper, void* unduper_data);
+void hashmap_free(hashmap_t* hashmap, coll_unduper_f* unduper, void* unduper_data);
 
 
 void* hashmap_get(hashmap_t* hashmap, const void* key);
