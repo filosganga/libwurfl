@@ -19,7 +19,6 @@
 #include "utils.h"
 
 #include "error.h"
-#include "../../config.h"
 
 #include <stdlib.h>
 #include <stdint.h>

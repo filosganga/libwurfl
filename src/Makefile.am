@@ -24,10 +24,7 @@ libwurfl_la_SOURCES = \
 libwurfl_la_LDFLAGS = -version-info 1:0:0
 libwurfl_la_CPPFLAGS = -I/usr/include -I/usr/local/include -I/usr/include/libxml2
 
-check_PROGRAMS = test-static
-#test_SOURCES = test.c
-#test_LDADD = libwurfl.la
-#test_CPPFLAGS = -I/usr/include -I/usr/local/include
+check_PROGRAMS = test
 
 test_static_SOURCES = test.c
 test_static_LDADD = libwurfl.la
