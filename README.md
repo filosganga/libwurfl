@@ -7,7 +7,7 @@ The interface is described in the wurfl.h and device.h files.
 
 Quick Start
 -----------
-To initialize the WURLF lib you had to download the last WURLF xml file. 
+To initialize the WURLF lib you must download the last WURLF xml file. 
 It can be downloaded from:
     
     http://sourceforge.net/projects/wurfl/files/WURFL/latest/wurfl-latest.xml.gz/download
