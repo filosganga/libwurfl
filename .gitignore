@@ -17,7 +17,6 @@ Debug
 *.cache
 *.log
 config.status
-configure
 stamp-h1
 .libs
 .deps
