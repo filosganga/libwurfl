@@ -53,31 +53,6 @@ void wurfl_free(wurfl_t* wurfl);
 device_t* wurfl_match(const wurfl_t* wurfl, const char* user_agent);
 
 /**
- * This function reload the wurfl data.
- *
- * @param wurfl The wurfl to reload.
- * @param root It is the wurfl main file path.
- * @param patches It is the NULL terminated array of patches paths.
- */
-void wurfl_reload(wurfl_t* wurfl, const char* root, const char** patches);
-
-/**
- * This function applies patches to wurfl
- *
- * @param wurfl The wurfl to patch.
- * @param patches It is the NULL terminated array of patches paths.
- */
-void wurfl_npatch(wurfl_t* wurfl, const char** patches);
-
-/**
- * This function applies a patch to wurfl
- *
- * @param wurfl The wurfl to patch.
- * @param patch It is the patch path.
- */
-void wurfl_patch(wurfl_t* wurfl, const char* patch);
-
-/**
  * This function return the wurfl devices size.
  *
  * @param wurfl The wurfl to query.
@@ -92,5 +67,32 @@ size_t wurfl_size(wurfl_t* wurfl);
  * @return The number of known capabilities.
  */
 size_t wurfl_capabilities_size(wurfl_t* wurfl);
+
+// TODO This funcions are hidden because threadsafe is not implemented.
+
+/**
+ * This function reload the wurfl data.
+ *
+ * @param wurfl The wurfl to reload.
+ * @param root It is the wurfl main file path.
+ * @param patches It is the NULL terminated array of patches paths.
+ */
+//void wurfl_reload(wurfl_t* wurfl, const char* root, const char** patches);
+
+/**
+ * This function applies patches to wurfl
+ *
+ * @param wurfl The wurfl to patch.
+ * @param patches It is the NULL terminated array of patches paths.
+ */
+//void wurfl_npatch(wurfl_t* wurfl, const char** patches);
+
+/**
+ * This function applies a patch to wurfl
+ *
+ * @param wurfl The wurfl to patch.
+ * @param patch It is the patch path.
+ */
+//void wurfl_patch(wurfl_t* wurfl, const char* patch);
 
 #endif /* WURFL_H_ */
