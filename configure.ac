@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT([libwurfl], [1.0.0], [me@filippodeluca.com])
+AC_INIT([libwurfl], [0.1], [me@filippodeluca.com])
 AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_SRCDIR([src/wurfl.h])
 AC_CONFIG_HEADER([src/config.h:src/config.h.in])
