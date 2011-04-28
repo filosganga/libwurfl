@@ -3,7 +3,7 @@ libWURFL - WURLF API C Library
 It is a very simple C library used to parse the WURFL file and match the
 HTTP request to obtain the mobile device capabilities.
 
-The interface is described in the wurfl.h file.
+The interface is described in the wurfl.h and device.h files.
 
 Quick Start
 -----------
@@ -36,4 +36,15 @@ null capability setted to "" is equal to not having it.
 
     char* capability_value = device_capability(device, "capability_name");
 
-You can also obtain all capability from the device...it is at work.
+You can also obtain all capability from the device. They are stored in an array
+of char*: [name_0, value_0, name_1, value_1, ...., name_n, value_n, NULL]
+
+    char** capabilities = device_capabilities(device, NULL);
+    char** caps_ptr = capabilities;
+	
+    while(caps_ptr!=NULL && *caps_ptr!=NULL) {
+        fprintf(stderr, "%s: %s,\n", *caps_ptr, *(caps_ptr + 1));
+        caps_ptr+=2;
+    }
+    
+Enjoy with that.

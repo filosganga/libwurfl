@@ -29,28 +29,68 @@ typedef struct _wurfl_t wurfl_t;
 
 /**
  * This function init the wurfl with the given main file and patches
+ * @param root It is the wurfl main file path.
+ * @param patches It is the NULL terminated array of patches paths.
+ *
+ * @return intialized wurfl.
  */
 wurfl_t* wurfl_init(const char* root, const char** patches);
 
 /**
  * This function destroy the wurfl
+ * @param wufl The wurfl to free.
  */
 void wurfl_free(wurfl_t* wurfl);
 
 /**
  * This is the match function
- * @user_agent must be != NULL
+ *
+ * @param wurfl The wurfl used to match.
+ * @param user_agent The user_agent to match. It must be != NULL
+ *
+ * @return the device_t matched from user_agent.
  */
 device_t* wurfl_match(const wurfl_t* wurfl, const char* user_agent);
 
+/**
+ * This function reload the wurfl data.
+ *
+ * @param wurfl The wurfl to reload.
+ * @param root It is the wurfl main file path.
+ * @param patches It is the NULL terminated array of patches paths.
+ */
 void wurfl_reload(wurfl_t* wurfl, const char* root, const char** patches);
 
+/**
+ * This function applies patches to wurfl
+ *
+ * @param wurfl The wurfl to patch.
+ * @param patches It is the NULL terminated array of patches paths.
+ */
 void wurfl_npatch(wurfl_t* wurfl, const char** patches);
 
+/**
+ * This function applies a patch to wurfl
+ *
+ * @param wurfl The wurfl to patch.
+ * @param patch It is the patch path.
+ */
 void wurfl_patch(wurfl_t* wurfl, const char* patch);
 
+/**
+ * This function return the wurfl devices size.
+ *
+ * @param wurfl The wurfl to query.
+ * @return The number of instantiated devices in wurfl.
+ */
 size_t wurfl_size(wurfl_t* wurfl);
 
+/**
+ * This function return the wurfl capabilities size.
+ *
+ * @param wurfl The wurfl to query.
+ * @return The number of known capabilities.
+ */
 size_t wurfl_capabilities_size(wurfl_t* wurfl);
 
 #endif /* WURFL_H_ */
