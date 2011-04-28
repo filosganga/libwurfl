@@ -24,14 +24,14 @@
 typedef struct _devicedef_t devicedef_t;
 
 struct _devicedef_t {
-	const char* id;
-	const char* user_agent;
-	const char* fall_back;
+	char* id;
+	char* user_agent;
+	char* fall_back;
 	bool actual_device_root;
 	hashmap_t* capabilities;
 };
 
-devicedef_t* devicedef_init(const char* id, const char* user_agent, const char* fallback, bool actual_device_root, hashmap_t* capabilities);
+devicedef_t* devicedef_init(char* id, char* user_agent, char* fallback, bool actual_device_root, hashmap_t* capabilities);
 
 void devicedef_free(devicedef_t* device);
 

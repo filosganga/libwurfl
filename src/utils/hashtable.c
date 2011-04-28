@@ -61,7 +61,7 @@ static void hashtable_resize(hashtable_t* hashtable, int new_capacity) {
     		hashtable_entry_t* entry = *(old_table + index);
     		while(entry!=NULL) {
     			void* item = entry->item;
-    			hashtable_add(hashtable, item);
+    			hashtable_add(hashtable, item, NULL, NULL);
     			hashtable_entry_t* this_entry = entry;
     			entry=entry->next;
     			free(this_entry);
@@ -169,24 +169,29 @@ void* hashtable_get(hashtable_t* hashtable, const void* item) {
 	return entry!=NULL?entry->item:NULL;
 }
 
-void* hashtable_add(hashtable_t* hashtable, const void* item) {
+void* hashtable_add(hashtable_t* hashtable, const void* item, coll_duper_f* duper, void* duper_data) {
 
-	void* old_item = NULL;
+	void* replaced = NULL;
 
 	int hashcode = hashtable_reinforce_hash(hashtable->hash_fn(item));
 	uint32_t table_index = hashtable_index(hashcode, hashtable->table_size);
 
 	hashtable_entry_t* entry = hashtable_find_entry(hashtable, table_index, item);
 
+	if(!duper) {
+		duper = &coll_nop_duper;
+	}
+	void* duped_item = duper(item, duper_data);
+
 	if(entry!=NULL) {
-		old_item = entry->item;
-		entry->item = item;
+		replaced = entry->item;
+		entry->item = duped_item;
 	}
 	else {
-		hashtable_add_entry(hashtable, table_index, item);
+		hashtable_add_entry(hashtable, table_index, duped_item);
 	}
 
-	return old_item;
+	return replaced;
 }
 
 void* hashtable_remove(hashtable_t* hashtable, const void* item) {

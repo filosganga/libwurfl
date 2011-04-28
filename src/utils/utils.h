@@ -46,7 +46,7 @@ typedef void (coll_unduper_f)(void* item, const void* xtra);
 /**
  * Functor function
  */
-typedef int (coll_functor_f)(const void* item, void* data);
+typedef bool (coll_functor_f)(const void* item, void* data);
 
 
 /**

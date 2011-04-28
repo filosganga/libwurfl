@@ -72,7 +72,8 @@ bool string_eq(const void* litem, const void *ritem) {
 
 
 uint32_t ref_hash(const void* ref) {
-	uint32_t* integer = (uint32_t*)ref;
+	// FIXME It is not a good idea
+	uint32_t integer = (uint32_t)ref;
 
 	return hash_int_impl(integer);
 }

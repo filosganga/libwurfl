@@ -21,14 +21,13 @@ libwurfl_la_SOURCES = \
 	utils/utils.c 
 	
 libwurfl_la_LDFLAGS = -version-info 0:0:0
-libwurfl_la_CPPFLAGS = -I/usr/include -I/usr/local/include -I/usr/include/libxml2
 
 check_PROGRAMS = test
 
 test_SOURCES = test.c
 test_LDADD = libwurfl.la
 test_LDFLAGS = -static
-test_CPPFLAGS = -I/usr/include -I/usr/local/include -I/usr/include/libxml2
+#test_CPPFLAGS = -I/usr/include -I/usr/local/include -I/usr/include/libxml2
 
 TESTS = $(check_PROGRAMS)
 

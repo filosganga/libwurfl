@@ -51,4 +51,6 @@ void wurfl_patch(wurfl_t* wurfl, const char* patch);
 
 size_t wurfl_size(wurfl_t* wurfl);
 
+size_t wurfl_capabilities_size(wurfl_t* wurfl);
+
 #endif /* WURFL_H_ */

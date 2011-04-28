@@ -40,7 +40,7 @@ void hashtable_free(hashtable_t* hashtable, coll_unduper_f* unduper, void* undup
 
 void* hashtable_get(hashtable_t* hashtable, const void* item);
 
-void* hashtable_add(hashtable_t* hashtable, const void* item);
+void* hashtable_add(hashtable_t* hashtable, const void* item, coll_duper_f* duper, void* duper_data);
 
 void* hashtable_remove(hashtable_t* hashtable, const void* item);
 

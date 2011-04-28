@@ -27,6 +27,6 @@ typedef struct {
 	hashtable_t* capabilities;
 } parser_data_t;
 
-int parser_parse(const char* path, parser_data_t* resource_data);
+int parse_resource(const char* path, parser_data_t* resource_data);
 
 #endif /* PARSER_H_ */

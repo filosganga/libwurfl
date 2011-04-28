@@ -96,7 +96,7 @@ static char* create_string(const xmlChar* string, parse_context_t* context) {
 
 	decode_string(tmp, string);
 
-	// TODO intern the string
+	// TODO intern the string?
 	char* output = malloc(sizeof(char) * (strlen(tmp) + 1));
 	if(!output) {
 		error(1, errno, "error allocating string");
@@ -120,7 +120,8 @@ static char* create_capability_name(const xmlChar* string, parse_context_t* cont
 			error(1, errno, "error allocating capability name");
 		}
 
-		hashtable_add(context->capabilities, name);
+		strcpy(name, tmp);
+		hashtable_add(context->capabilities, name, NULL, NULL);
 	}
 
 	return name;
@@ -155,18 +156,18 @@ static xmlChar* get_attribute(parse_context_t* context, int nb_attributes,	const
 
 static devicedef_t* create_devicedef(parse_context_t* context, int nb_attributes, const xmlChar** attributes) {
 
-	devicedef_t* devicedef = malloc(sizeof(devicedef_t));
-	if(devicedef==NULL) {
-		error(1, errno, "error allocating device");
-	}
-
-	hashmap_options_t caps_opts = {400, .75f};
-	devicedef->capabilities = hashmap_init(&string_eq, &string_hash, &caps_opts);
-
 	const xmlChar* id = get_attribute(context, nb_attributes, attributes, ATTR_ID);
 	const xmlChar* user_agent = get_attribute(context, nb_attributes, attributes, ATTR_USER_AGENT);
 	const xmlChar* fallback = get_attribute(context, nb_attributes, attributes, ATTR_FALL_BACK);
 	const xmlChar* actual_device_root = get_attribute(context, nb_attributes, attributes, ATTR_ACTUAL_DEVICE_ROOT);
+
+	devicedef_t* devicedef = malloc(sizeof(devicedef_t));
+	if(devicedef==NULL) {
+		error(1, errno, "error allocating device");
+	}
+	hashmap_options_t caps_opts = {400, .75f};
+	devicedef->capabilities = hashmap_init(&string_eq, &string_hash, &caps_opts);
+
 
 	if(!id || xmlStrlen(id)==0) {
 		error(2,0,"The device id must be != null");
@@ -303,7 +304,7 @@ static void sax_nop(void *ctx) {
 /**
  * Parse function
  */
-int parser_parse(const char* path, parser_data_t* resource_data) {
+int parse_resource(const char* path, parser_data_t* resource_data) {
 
 	xmlSAXHandler saxHandler;
 	memset(&saxHandler, 0, sizeof(saxHandler));

@@ -28,9 +28,9 @@
 
 extern int errno;
 
-devicedef_t* devicedef_init(const char* id,
-		const char* user_agent,
-		const char* fallback,
+devicedef_t* devicedef_init(char* id,
+		char* user_agent,
+		char* fallback,
 		bool actual_device_root,
 		hashmap_t* capabilities) {
 
@@ -49,16 +49,26 @@ devicedef_t* devicedef_init(const char* id,
 
 void devicedef_free(devicedef_t* device) {
 
-	hashmap_free(device->capabilities, &coll_nop_unduper, NULL);
+	hashmap_free(device->capabilities, &coll_default_unduper, NULL);
 	free(device);
 }
 
 devicedef_t* devicedef_patch(devicedef_t* patching, const devicedef_t* patcher) {
 
-	patching->user_agent = patcher->user_agent;
-	patching->fall_back = patcher->fall_back;
+	if(patcher->user_agent != NULL) {
+		free(patching->user_agent);
+		patching->user_agent = patcher->user_agent;
+	}
+
+	if(patcher->fall_back != NULL) {
+		free(patcher->fall_back);
+		patching->fall_back = patcher->fall_back;
+	}
+
 	patching->actual_device_root = patcher->actual_device_root;
+
 	hashmap_putall(patching->capabilities, patcher->capabilities);
+	hashmap_free(patcher->capabilities, NULL, NULL);
 
 	return patching;
 }

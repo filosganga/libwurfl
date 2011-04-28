@@ -123,7 +123,7 @@ bool putall_functor(const void* item, void* data) {
 	cloned->item = hashmap_item->item;
 	cloned->owner = dest;
 
-	hashmap_item_t* replaced = hashtable_add(dest->hashtable, cloned);
+	hashmap_item_t* replaced = hashtable_add(dest->hashtable, cloned, NULL, NULL);
 	if(replaced!=NULL) {
 		free(replaced);
 	}
@@ -174,7 +174,7 @@ void* hashmap_put(hashmap_t* map, const void* key, const void* item) {
 	assert(key!=NULL);
 
 	hashmap_item_t* hashmap_item = item_init(map, key, item);
-	hashmap_item_t* replaced_item = hashtable_add(map->hashtable, hashmap_item);
+	hashmap_item_t* replaced_item = hashtable_add(map->hashtable, hashmap_item, NULL, NULL);
 
 	void *replaced = NULL;
 	if(replaced_item!=NULL) {
