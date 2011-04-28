@@ -20,6 +20,7 @@
 
 #include "parser.h"
 #include "matcher.h"
+#include "normalizer.h"
 #include "device-impl.h"
 #include "devicedef.h"
 #include "utils/utils.h"
@@ -36,13 +37,15 @@
 extern int errno;
 
 struct _wurfl_t {
-	matcher_t* matcher;
 	hashmap_t* devices;
 	hashtable_t* capabilities;
-	char* version;
+	matcher_t* matcher;
+	normalizer_t* normalizer;
 };
 
 static bool patch_device(const void* item, void* xtra);
+
+static bool normalize_device(const void* item, void* xtra);
 
 static void free_device(void* item, const void* xtra);
 
@@ -55,8 +58,10 @@ wurfl_t* wurfl_init(const char* main_path, const char** patch_paths) {
 		error(1,errno,"error allocating memory to wurfl");
 	}
 
+	wurfl->normalizer = normalizer_init();
 	wurfl->devices = hashmap_init(&string_eq, &string_hash, NULL);
 	wurfl->capabilities = hashtable_init(&string_eq, &string_hash, NULL);
+
 
 	init_devices(wurfl, main_path);
 	wurfl_npatch(wurfl, patch_paths);
@@ -70,6 +75,7 @@ wurfl_t* wurfl_init(const char* main_path, const char** patch_paths) {
 
 void wurfl_free(wurfl_t* wurfl) {
 
+	normalizer_free(wurfl->normalizer);
 	matcher_free(wurfl->matcher);
 	hashtable_free(wurfl->capabilities, &coll_default_unduper, NULL);
 	hashmap_free(wurfl->devices, &free_device, NULL);
@@ -79,9 +85,18 @@ void wurfl_free(wurfl_t* wurfl) {
 
 device_t* wurfl_match(const wurfl_t* wurfl, const char* user_agent) {
 
-	devicedef_t* matched = matcher_match(wurfl->matcher, user_agent);
+	if(user_agent==NULL) {
+		return NULL;
+	}
+	else {
+		char normalized_ua[8 * 1024];
+		memset(normalized_ua, '\0', 8 * 1024);
+		normalizer_apply(wurfl->normalizer, normalized_ua, user_agent);
 
-	return device_init(wurfl->devices, matched);
+		devicedef_t* matched = matcher_match(wurfl->matcher, normalized_ua);
+
+		return device_init(wurfl->devices, matched);
+	}
 }
 
 void wurfl_reload(wurfl_t* wurfl, const char* root, const char** patches) {
@@ -109,7 +124,9 @@ void wurfl_patch(wurfl_t* wurfl, const char* patch) {
 	rdata.capabilities = wurfl->capabilities;
 	parse_resource(patch, &rdata);
 
+	hashmap_foreach_value(rdata.devices, &normalize_device, wurfl->normalizer);
 	hashmap_foreach_value(rdata.devices, &patch_device, wurfl->devices);
+
 }
 
 size_t wurfl_size(wurfl_t* wurfl) {
@@ -128,6 +145,8 @@ static void init_devices(wurfl_t* wurfl, const char* path) {
 	rdata.devices = wurfl->devices;
 	rdata.capabilities = wurfl->capabilities;
 	parse_resource(path, &rdata);
+
+	hashmap_foreach_value(rdata.devices, &normalize_device, wurfl->normalizer);
 }
 
 static bool patch_device(const void* item, void* xtra) {
@@ -141,6 +160,24 @@ static bool patch_device(const void* item, void* xtra) {
 	}
 	else {
 		hashmap_put(devices, patcher->id, patcher);
+	}
+
+	return false;
+}
+
+static bool normalize_device(const void* item, void* xtra) {
+
+	devicedef_t* device = (devicedef_t*)item;
+	normalizer_t* normalizer = (normalizer_t*)xtra;
+
+	if(device->user_agent!=NULL) {
+
+		char tmp[8 * 1024];
+		normalizer_apply(normalizer, tmp, device->user_agent);
+		if(strcmp(tmp, device->user_agent)!=0) {
+			free(device->user_agent);
+			device->user_agent = strdup(tmp);
+		}
 	}
 
 	return false;
