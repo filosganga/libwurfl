@@ -20,17 +20,19 @@
 #define FUNCTORS_H_
 
 #include "utils.h"
+#include "hashtable.h"
 #include "hashmap.h"
 #include "patricia.h"
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct {
 	hashmap_t* map;
 	void* (*key_get)(const void* item);
 } functor_tomap_data_t;
 
-int functor_tomap(const void* item, void* data);
+bool functor_tomap(const void* item, void* data);
 
 typedef struct {
 	uint32_t index;
@@ -38,14 +40,20 @@ typedef struct {
 	void** array;
 } functor_toarray_data_t;
 
-int functor_toarray(const void* item, void* data);
+bool functor_toarray(const void* item, void* data);
 
 typedef struct {
 	patricia_t* trie;
 	void* (*key_get)(const void* item);
 } functor_totrie_data_t;
 
-int functor_totrie(const void* item, void* data);
+bool functor_totrie(const void* item, void* data);
+
+typedef struct {
+	hashtable_t* set;
+} functor_toset_data_t;
+
+bool functor_toset(const void* item, void* data) ;
 
 //typedef struct {
 //	coll_predicate_t* predicate;

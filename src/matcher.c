@@ -109,27 +109,59 @@ void matcher_free(matcher_t* matcher) {
 	free(matcher);
 }
 
-devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
+static void select_candidates(hashtable_t* candidates, matcher_t* matcher, const char* user_agent) {
 
 	find_data_t pfx_data;
 	pfx_data.needle = user_agent;
 	pfx_data.map = hashmap_init(&string_eq, &string_hash, NULL);
 	if(patricia_search_foreach(matcher->prefix, user_agent, &find, &pfx_data)) {
-		return hashmap_get(pfx_data.map, user_agent);
+		hashtable_add(candidates, hashmap_get(pfx_data.map, user_agent), NULL, NULL);
 	}
 	else {
+		functor_toset_data_t toset_data;
+		toset_data.set = candidates;
+		hashmap_foreach_value(pfx_data.map, &functor_toset, &toset_data);
 
-		functor_toarray_data_t toarray_data;
-		toarray_data.index = 0;
-		toarray_data.size = hashmap_size(pfx_data.map);
-		toarray_data.array = malloc(sizeof(devicedef_t*) * toarray_data.size);
-		if(!toarray_data.array) {
-			error(1, errno, "error allocating candidates array");
-		}
-		hashmap_foreach_value(pfx_data.map, &functor_toarray, &toarray_data);
+		char ruser_agent[8 * 1024];
+		memset(ruser_agent, '\0', 8 * 1024);
+		strrev(ruser_agent, user_agent);
 
-		return match(toarray_data.array, toarray_data.size, user_agent, UINT32_MAX);
+		find_data_t sfx_data;
+		sfx_data.needle = ruser_agent;
+		sfx_data.map = hashmap_init(&string_eq, &string_hash, NULL);
+		patricia_search_foreach(matcher->suffix, ruser_agent, &find, &pfx_data);
+		hashmap_foreach_value(sfx_data.map, &functor_toset, &toset_data);
+
+		hashmap_free(sfx_data.map, NULL, NULL);
 	}
+	hashmap_free(pfx_data.map, NULL, NULL);
+}
+
+devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
+
+	hashtable_t* candidates = hashtable_init(&devicedef_eq, &devicedef_hash, NULL);
+	select_candidates(candidates, matcher, user_agent);
+
+	functor_toarray_data_t toarray_data;
+	toarray_data.index = 0;
+	toarray_data.size = hashtable_size(candidates);
+	toarray_data.array = malloc(sizeof(devicedef_t*) * toarray_data.size);
+	if(!toarray_data.array) {
+		error(1, errno, "error allocating candidates array");
+	}
+	hashtable_foreach(candidates, &functor_toarray, &toarray_data);
+	hashtable_free(candidates, NULL, NULL);
+
+	devicedef_t* matched = NULL;
+	if(toarray_data.size==1) {
+		matched = toarray_data.array[0];
+	}
+	else {
+		matched = match((devicedef_t**)toarray_data.array, toarray_data.size, user_agent, UINT32_MAX);
+	}
+
+	assert(matched != NULL);
+	return matched;
 }
 
 /**

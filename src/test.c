@@ -33,12 +33,24 @@ int test_wurfl() {
 
 	wurfl_t* wurfl = wurfl_init(root, patches);
 
-	device_t* device = wurfl_match(wurfl, "Nokia6601");
+	device_t* device = wurfl_match(wurfl, "NokiaE5");
 	if(device!=NULL) {
-		fprintf(stderr, "Matched Device: %s\n", device_id(device));
+		char** capabilities = device_capabilities(device, NULL);
+		char** caps_ptr = capabilities;
+
+		fprintf(stderr, "id: %s,\ncapabilities: {\n", device_id(device));
+		while(caps_ptr!=NULL && *caps_ptr!=NULL) {
+			fprintf(stderr, "    %s: %s,\n", *caps_ptr, *(caps_ptr + 1));
+			caps_ptr+=2;
+		}
+		fprintf(stderr, "}\n");
+
+		free(capabilities);
 	}
 
 	wurfl_free(wurfl);
+
+
 
 	return 0;
 }

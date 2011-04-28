@@ -33,6 +33,8 @@ char* device_user_agent(const device_t* device);
 
 char* device_capability(const device_t* device, const char* name);
 
+char** device_capabilities(const device_t* device, void* (dupe)(size_t size));
+
 int device_cmp(const void* ldevice, const void* rdevice);
 
 uint32_t device_hash(const void* item);

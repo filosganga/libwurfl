@@ -21,6 +21,7 @@
 #include "devicedef.h"
 #include "utils/error.h"
 #include "utils/utils.h"
+#include "utils/functors.h"
 #include "utils/hashmap.h"
 
 #include <stdlib.h>
@@ -31,19 +32,9 @@
 
 extern int errno;
 
-hashmap_t* explode_capabilities(const devicedef_t* devicedef, hashmap_t* devices) {
+static bool capability_toarray(void* item, void* xtra);
 
-	hashmap_t* parent_capabilities;
-	if(devicedef->fall_back!=NULL) {
-		parent_capabilities = explode_capabilities(hashmap_get(devices, devicedef->fall_back), devices);
-	}
-	else {
-		parent_capabilities = hashmap_init(&string_eq, &string_hash, NULL);
-	}
-
-	hashmap_putall(parent_capabilities, devicedef->capabilities);
-	return parent_capabilities;
-}
+static hashmap_t* explode_capabilities(const devicedef_t* devicedef, hashmap_t* devices);
 
 device_t* device_init(hashmap_t* devices, const devicedef_t* devicedef) {
 
@@ -68,6 +59,28 @@ void device_release(device_t* device) {
 char* device_capability(const device_t* device, const char* name) {
 
 	return (char*)hashmap_get(device->capabilities, name);
+}
+
+char** device_capabilities(const device_t* device, void* (dupe)(size_t size)) {
+
+	if(dupe==NULL) {
+		dupe = &malloc;
+	}
+
+	size_t size = hashmap_size(device->capabilities);
+
+	functor_toarray_data_t toarray_data;
+	toarray_data.index = 0;
+	toarray_data.size = (size * 2) + 1;
+	toarray_data.array = dupe(sizeof(char*) * toarray_data.size);
+	if(!toarray_data.array) {
+		error(1, errno, "error allocating array for capabilities");
+	}
+	memset(toarray_data.array, NULL, toarray_data.size);
+
+	hashmap_foreach(device->capabilities, &capability_toarray, &toarray_data);
+
+	return (char**)toarray_data.array;
 }
 
 char* device_id(const device_t* device) {
@@ -102,3 +115,32 @@ bool device_eq(const void* left, const void* right) {
 
 	return string_eq(ldevice->id, rdevice->id);
 }
+
+static bool capability_toarray(void* item, void* xtra) {
+	functor_toarray_data_t* data = (functor_toarray_data_t*)xtra;
+	char** kv = (char**)item;
+
+	char* name = kv[0];
+	char* value = kv[1];
+
+	data->array[data->index] = name;
+	data->array[data->index + 1] = value;
+	data->index+=2;
+
+	return false;
+}
+
+static hashmap_t* explode_capabilities(const devicedef_t* devicedef, hashmap_t* devices) {
+
+	hashmap_t* parent_capabilities;
+	if(devicedef->fall_back!=NULL) {
+		parent_capabilities = explode_capabilities(hashmap_get(devices, devicedef->fall_back), devices);
+	}
+	else {
+		parent_capabilities = hashmap_init(&string_eq, &string_hash, NULL);
+	}
+
+	hashmap_putall(parent_capabilities, devicedef->capabilities);
+	return parent_capabilities;
+}
+

@@ -18,16 +18,16 @@
 
 #include "functors.h"
 
-int functor_tomap(const void* item, void* data) {
+bool functor_tomap(const void* item, void* data) {
 	functor_tomap_data_t* tomap_data = data;
 
 	void* key = tomap_data->key_get(item);
 	hashmap_put(tomap_data->map, key, item);
 
-	return 0;
+	return false;
 }
 
-int functor_toarray(const void* item, void* data) {
+bool functor_toarray(const void* item, void* data) {
 	functor_toarray_data_t* tadata = data;
 
 	if(tadata->index < tadata->size) {
@@ -37,23 +37,19 @@ int functor_toarray(const void* item, void* data) {
 	return tadata->index >= tadata->size;
 }
 
-int functor_totrie(const void* item, void* data) {
+bool functor_totrie(const void* item, void* data) {
 	functor_totrie_data_t* functor_data = (functor_totrie_data_t*)data;
 
 	patricia_put(functor_data->trie, functor_data->key_get(item), item);
 
-	return 0;
+	return false;
 }
 
-//int functor_find(const void* item, void* xtra) {
-//
-//	int found = 0;
-//
-//	functor_find_data_t* data = xtra;
-//	if(data->predicate->evaluate(item, data->predicate->data)) {
-//		data->found = item;
-//		found = 1;
-//	}
-//
-//	return found;
-//}
+bool functor_toset(const void* item, void* data) {
+	functor_toset_data_t* functor_data = (functor_toset_data_t*)data;
+
+	hashtable_add(functor_data->set, item, NULL, NULL);
+
+	return false;
+}
+
