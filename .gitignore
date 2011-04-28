@@ -1,15 +1,17 @@
-Exe
-Release
-Debug
+# Build
 *.o
 *.lo
 *.la
 .DS_Store
 *.~
 
-#.settings
-#.project
-#.cproject
+# Eclipse
+.settings
+.project
+.cproject
+Exe
+Release
+Debug
 
 *~
 *.cache
