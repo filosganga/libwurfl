@@ -43,6 +43,15 @@ struct _wurfl_t {
 	normalizer_t* normalizer;
 };
 
+/* Hidden function in interface due to threadsafe */
+
+void wurfl_reload(wurfl_t* wurfl, const char* root, const char** patches);
+
+void wurfl_npatch(wurfl_t* wurfl, const char** patches);
+
+void wurfl_patch(wurfl_t* wurfl, const char* patch);
+
+
 static bool patch_device(const void* item, void* xtra);
 
 static bool normalize_device(const void* item, void* xtra);
