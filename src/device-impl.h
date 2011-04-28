@@ -20,15 +20,15 @@
 #define DEVICE_IMPL_H_
 
 #include "device.h"
-
-#include "repository.h"
 #include "devicedef.h"
+#include "utils/hashmap.h"
 
 struct _device_t {
-	devicedef_t* root;
-	repository_t* repository;
+	const char* id;
+	const char* user_agent;
+	hashmap_t* capabilities;
 };
 
-device_t* device_init(repository_t* repository, const devicedef_t* devicedef);
+device_t* device_init(hashmap_t* devices, const devicedef_t* devicedef);
 
 #endif /* DEVICE_IMPL_H_ */

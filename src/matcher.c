@@ -36,8 +36,8 @@
 extern int errno;
 
 struct _matcher_t {
-	normalizer_t* normalizer;
 	patricia_t* prefix;
+	patricia_t* suffix;
 };
 
 typedef struct {
@@ -48,6 +48,24 @@ typedef struct {
 static uint32_t levenshtein_distance(const char* s, const char* t, uint32_t tolerance);
 
 static devicedef_t* match(devicedef_t** candidates, size_t candidates_size, const char* needle, uint32_t tolerance);
+
+static void* devicedef_revuser_agent(const void* item) {
+	devicedef_t* device = (devicedef_t*)item;
+
+	char* revuser_agent = NULL;
+
+	if(device->user_agent!=NULL) {
+
+		char* reverse_ua = malloc(sizeof(char) * (strlen(device->user_agent) + 1));
+		if(!reverse_ua) {
+			error(1, errno, "error allocating memory for reverse user-agent");
+		}
+
+		revuser_agent = strrev(reverse_ua, device->user_agent);
+	}
+
+	return revuser_agent;
+}
 
 static bool find(void* item, const void* xtra) {
 	void** kv = (void**)item;
@@ -60,45 +78,43 @@ static bool find(void* item, const void* xtra) {
 	return strcmp(key, data->needle)==0;
 }
 
-matcher_t* matcher_init(repository_t* repo) {
+matcher_t* matcher_init(hashmap_t* devices) {
 
 	matcher_t* matcher = malloc(sizeof(matcher_t));
 	if(!matcher) {
 		error(1, errno, "error allocating matcher");
 	}
 
-	matcher->normalizer = normalizer_init();
-
 	matcher->prefix = patricia_init(NULL, NULL, NULL);
+	matcher->suffix = patricia_init(NULL, &coll_default_unduper, NULL);
 
-	// TODO Apply normalizers too
+	// add to prefix trie
 	functor_totrie_data_t totrie_data;
 	totrie_data.trie = matcher->prefix;
 	totrie_data.key_get = &devicedef_user_agent;
-	repository_foreach(repo, &functor_totrie, &totrie_data);
+	hashmap_foreach_value(devices, &functor_totrie, &totrie_data);
+
+	// add to suffix trie
+	totrie_data.trie = matcher->suffix;
+	totrie_data.key_get = &devicedef_revuser_agent;
+	hashmap_foreach_value(devices,  &functor_totrie, &totrie_data);
 
 	return matcher;
 }
 
 void matcher_free(matcher_t* matcher) {
 
-	normalizer_free(matcher->normalizer);
 	patricia_free(matcher->prefix, NULL, NULL);
+	patricia_free(matcher->suffix, NULL, NULL);
 	free(matcher);
 }
 
 devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
 
-	char wk_user_agent[8 * 1024];
-	memset(wk_user_agent, '\0', 8 * 1024);
-
-	normalizer_apply(matcher->normalizer, wk_user_agent, user_agent);
-
-
 	find_data_t pfx_data;
 	pfx_data.needle = user_agent;
 	pfx_data.map = hashmap_init(&string_eq, &string_hash, NULL);
-	if(patricia_search_foreach(matcher->prefix, wk_user_agent, &find, &pfx_data)) {
+	if(patricia_search_foreach(matcher->prefix, user_agent, &find, &pfx_data)) {
 		return hashmap_get(pfx_data.map, user_agent);
 	}
 	else {
@@ -112,7 +128,7 @@ devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
 		}
 		hashmap_foreach_value(pfx_data.map, &functor_toarray, &toarray_data);
 
-		return match(toarray_data.array, toarray_data.size, wk_user_agent, LD_TOLL);
+		return match(toarray_data.array, toarray_data.size, user_agent, UINT32_MAX);
 	}
 }
 

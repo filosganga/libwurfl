@@ -23,6 +23,8 @@ stamp-h1
 *.cache
 *.status
 Makefile
+src/config.h
+libtool
 
 src/test
 src/test-static

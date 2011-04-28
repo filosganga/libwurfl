@@ -58,12 +58,12 @@ libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libwurfl_la_LIBADD =
 am_libwurfl_la_OBJECTS = libwurfl_la-wurfl.lo libwurfl_la-device.lo \
-	libwurfl_la-devicedef.lo libwurfl_la-repository.lo \
-	libwurfl_la-matcher.lo libwurfl_la-normalizer.lo \
-	libwurfl_la-sax2.lo libwurfl_la-functors.lo \
-	libwurfl_la-hashmap.lo libwurfl_la-hashtable.lo \
-	libwurfl_la-linkedlist.lo libwurfl_la-patricia.lo \
-	libwurfl_la-error.lo libwurfl_la-utils.lo
+	libwurfl_la-devicedef.lo libwurfl_la-matcher.lo \
+	libwurfl_la-normalizer.lo libwurfl_la-sax2.lo \
+	libwurfl_la-functors.lo libwurfl_la-hashmap.lo \
+	libwurfl_la-hashtable.lo libwurfl_la-linkedlist.lo \
+	libwurfl_la-patricia.lo libwurfl_la-error.lo \
+	libwurfl_la-utils.lo
 libwurfl_la_OBJECTS = $(am_libwurfl_la_OBJECTS)
 libwurfl_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -211,7 +211,6 @@ libwurfl_la_SOURCES = \
 	wurfl.c \
 	device.c \
 	devicedef.c \
-	repository.c \
 	matcher.c \
 	normalizer.c \
 	sax2.c \
@@ -337,7 +336,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-matcher.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-normalizer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-patricia.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-repository.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-sax2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libwurfl_la-wurfl.Plo@am__quote@
@@ -384,13 +382,6 @@ libwurfl_la-devicedef.lo: devicedef.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='devicedef.c' object='libwurfl_la-devicedef.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libwurfl_la-devicedef.lo `test -f 'devicedef.c' || echo '$(srcdir)/'`devicedef.c
-
-libwurfl_la-repository.lo: repository.c
-@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libwurfl_la-repository.lo -MD -MP -MF $(DEPDIR)/libwurfl_la-repository.Tpo -c -o libwurfl_la-repository.lo `test -f 'repository.c' || echo '$(srcdir)/'`repository.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libwurfl_la-repository.Tpo $(DEPDIR)/libwurfl_la-repository.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='repository.c' object='libwurfl_la-repository.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libwurfl_la-repository.lo `test -f 'repository.c' || echo '$(srcdir)/'`repository.c
 
 libwurfl_la-matcher.lo: matcher.c
 @am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libwurfl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libwurfl_la-matcher.lo -MD -MP -MF $(DEPDIR)/libwurfl_la-matcher.Tpo -c -o libwurfl_la-matcher.lo `test -f 'matcher.c' || echo '$(srcdir)/'`matcher.c

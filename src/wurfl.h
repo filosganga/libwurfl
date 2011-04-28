@@ -43,4 +43,12 @@ void wurfl_free(wurfl_t* wurfl);
  */
 device_t* wurfl_match(const wurfl_t* wurfl, const char* user_agent);
 
+void wurfl_reload(wurfl_t* wurfl, const char* root, const char** patches);
+
+void wurfl_npatch(wurfl_t* wurfl, const char** patches);
+
+void wurfl_patch(wurfl_t* wurfl, const char* patch);
+
+size_t wurfl_size(wurfl_t* wurfl);
+
 #endif /* WURFL_H_ */

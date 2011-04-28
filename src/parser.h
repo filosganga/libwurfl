@@ -23,8 +23,8 @@
 #include "utils/hashtable.h"
 
 typedef struct {
-	char* version;
 	hashmap_t* devices;
+	hashtable_t* capabilities;
 } parser_data_t;
 
 int parser_parse(const char* path, parser_data_t* resource_data);

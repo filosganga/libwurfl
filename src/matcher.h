@@ -19,12 +19,12 @@
 #ifndef MATCHER_H_
 #define MATCHER_H_
 
-#include "repository.h"
 #include "devicedef.h"
+#include "utils/hashmap.h"
 
 typedef struct _matcher_t matcher_t;
 
-matcher_t* matcher_init(repository_t* repo);
+matcher_t* matcher_init(hashmap_t* devices);
 
 void matcher_free(matcher_t* matcher);
 

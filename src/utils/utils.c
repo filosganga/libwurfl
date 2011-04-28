@@ -105,27 +105,21 @@ bool int_eq(const void* litem, const void *ritem) {
 	return *lint==*rint;
 }
 
-char* strrev(const char *s) {
+char* strrev(char* dst, const char* src) {
 
-	char *t;
+	if(src != NULL) {
+		size_t src_len = strlen(src);
 
-	if(s != NULL) {
-		size_t s_len = strlen(s);
-		t = malloc(sizeof(char) * (s_len + 1));
-		if(!t) {
-			error(1, errno, "error allocating string for rverse");
-		}
-
-		uint32_t i, j;
-		for(i = 0, j = s_len - 1; j >= 0; i++, j--) {
-			*(t + j) = *(s + i);
+		int32_t i, j;
+		for(i = 0, j = src_len - 1; j >= 0; i++, j--) {
+			*(dst + j) = *(src + i);
 		}
 	}
 	else {
-		t = (char*)s;
+		dst = (char*)src;
 	}
 
-	return t;
+	return dst;
 }
 
 /**

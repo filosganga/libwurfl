@@ -55,6 +55,4 @@ bool hashtable_empty(hashtable_t* hashtable);
 
 bool hashtable_foreach(hashtable_t* hashtable, coll_functor_f* functor, void* functor_data);
 
-//void* hashtable_find(hashtable_t* hashtable, coll_predicate_f predicate, void* predicate_data);
-
 #endif /* HASHTABLE_H_ */

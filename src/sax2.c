@@ -60,39 +60,43 @@ extern int errno;
 
 typedef struct {
 	hashmap_t* devices;
+	hashtable_t* capabilities;
 	char* version;
 
 	devicedef_t* current_devicedef;
 } parse_context_t;
 
-static char* create_string(const xmlChar* string, parse_context_t* context) {
+static void decode_string(char* dst, const xmlChar* src) {
 
-	size_t stringlen = xmlStrlen(string);
-
-	char tmp[8 * 1024];
-	char *tmpptr = tmp;
-	memset(tmpptr, '\0', 8 * 1024);
-
-	char* input = (char*)string;
+	char* output = dst;
+	char* input = (char*)src;
 	size_t inputlen = strlen(input);
 
 	size_t inputleft = inputlen;
-	size_t outputleft = stringlen;
-
+	size_t outputleft = xmlStrlen(src);
 
 	iconv_t* cd = iconv_open("ASCII", "UTF-8");
 	if(cd < 0) { // returns -1 on error
 		// It is very improbable
 		error(2, errno, "iconv does not support UTF-8 or ASCII");
 	}
-	size_t converted = iconv(cd, &input, &inputleft, &tmpptr, &outputleft);
+	size_t converted = iconv(cd, &input, &inputleft, &output, &outputleft);
 	if(converted < 0) {
 		error(2, errno, "error converting string");
 	}
 
 	iconv_close(cd);
 
-	// TODO intern the strings
+}
+
+static char* create_string(const xmlChar* string, parse_context_t* context) {
+
+	char tmp[8 * 1024];
+	memset(tmp, '\0', 8 * 1024);
+
+	decode_string(tmp, string);
+
+	// TODO intern the string
 	char* output = malloc(sizeof(char) * (strlen(tmp) + 1));
 	if(!output) {
 		error(1, errno, "error allocating string");
@@ -101,6 +105,28 @@ static char* create_string(const xmlChar* string, parse_context_t* context) {
 
 	return output;
 }
+
+static char* create_capability_name(const xmlChar* string, parse_context_t* context) {
+
+	char tmp[8 * 1024];
+	memset(tmp, '\0', 8 * 1024);
+
+	decode_string(tmp, string);
+
+	char* name = hashtable_get(context->capabilities, tmp);
+	if(!name) {
+		name = malloc(sizeof(char) * (strlen(tmp) + 1));
+		if(!name) {
+			error(1, errno, "error allocating capability name");
+		}
+
+		hashtable_add(context->capabilities, name);
+	}
+
+	return name;
+
+}
+
 
 static xmlChar* get_attribute(parse_context_t* context, int nb_attributes,	const xmlChar** attributes, const xmlChar* name) {
 
@@ -113,8 +139,8 @@ static xmlChar* get_attribute(parse_context_t* context, int nb_attributes,	const
 		const xmlChar *localname = attributes[att_index];
 		if(xmlStrEqual(name, localname)) {
 
-			const xmlChar *prefix = attributes[att_index+1];
-			const xmlChar *nsURI = attributes[att_index+2];
+			//const xmlChar *prefix = attributes[att_index+1];
+			//const xmlChar *nsURI = attributes[att_index+2];
 			const xmlChar *valueBegin = attributes[att_index+3];
 			const xmlChar *valueEnd = attributes[att_index+4];
 
@@ -156,7 +182,7 @@ static devicedef_t* create_devicedef(parse_context_t* context, int nb_attributes
 		devicedef->user_agent = create_string(user_agent, context);
 	}
 
-	if(xmlStrEqual(fallback, BAD_CAST("root"))) {
+	if(xmlStrEqual(fallback, BAD_CAST("root")) || xmlStrlen(fallback)<=0) {
 		devicedef->fall_back = NULL;
 	}
 	else {
@@ -178,7 +204,7 @@ static void start_capability(parse_context_t* context, int nb_attributes, const 
 	if(xml_name) {
 		const xmlChar* xml_value = get_attribute(context, nb_attributes, attributes, ATTR_VALUE);
 
-		const char* name = create_string(xml_name, context);
+		const char* name = create_capability_name(xml_name, context);
 		const char* value = create_string(xml_value, context);
 
 		hashmap_put(context->current_devicedef->capabilities, name, value);
@@ -304,6 +330,7 @@ int parser_parse(const char* path, parser_data_t* resource_data) {
 	memset(&context, 0, sizeof(context));
 
 	context.devices = resource_data->devices;
+	context.capabilities = resource_data->capabilities;
 	context.current_devicedef = NULL;
 
 	int sax_error = xmlSAXUserParseFile(&saxHandler, &context, path);
@@ -313,7 +340,6 @@ int parser_parse(const char* path, parser_data_t* resource_data) {
 
 	error(0,0, "parsed %d devices", hashmap_size(context.devices));
 
-	resource_data->version = "TBD";
 
 	xmlCleanupParser();
 

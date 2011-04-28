@@ -21,13 +21,15 @@
 
 #include "utils/hashmap.h"
 
-typedef struct {
+typedef struct _devicedef_t devicedef_t;
+
+struct _devicedef_t {
 	const char* id;
 	const char* user_agent;
 	const char* fall_back;
 	bool actual_device_root;
 	hashmap_t* capabilities;
-} devicedef_t;
+};
 
 devicedef_t* devicedef_init(const char* id, const char* user_agent, const char* fallback, bool actual_device_root, hashmap_t* capabilities);
 

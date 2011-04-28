@@ -31,93 +31,74 @@
 
 extern int errno;
 
-void explode_capabilities(hashmap_t* capabilities, const devicedef_t* devicedef, repository_t* repository) {
+hashmap_t* explode_capabilities(const devicedef_t* devicedef, hashmap_t* devices) {
 
-	if(devicedef->fall_back!=NULL && strlen(devicedef->fall_back)>0 && strcmp(devicedef->fall_back, "root")!=0) {
-		explode_capabilities(capabilities, repository_get(repository, devicedef->fall_back), repository);
+	hashmap_t* parent_capabilities;
+	if(devicedef->fall_back!=NULL) {
+		parent_capabilities = explode_capabilities(hashmap_get(devices, devicedef->fall_back), devices);
+	}
+	else {
+		parent_capabilities = hashmap_init(&string_eq, &string_hash, NULL);
 	}
 
-	hashmap_putall(capabilities, devicedef->capabilities);
+	hashmap_putall(parent_capabilities, devicedef->capabilities);
+	return parent_capabilities;
 }
 
-device_t* device_init(repository_t* repository, const devicedef_t* devicedef) {
-
-	assert(repository!=NULL);
-	assert(devicedef!=NULL);
+device_t* device_init(hashmap_t* devices, const devicedef_t* devicedef) {
 
 	device_t* device = malloc(sizeof(device_t));
 	if(device==NULL) {
 		error(1, errno, "error allocating device");
 	}
 
-	device->root = devicedef;
-	device->repository = repository;
+	// TODO copy values?
+	device->id = devicedef->id;
+	device->user_agent = devicedef->user_agent;
+	device->capabilities = explode_capabilities(devicedef, devices);
 
 	return device;
 }
 
 void device_release(device_t* device) {
-
+	hashmap_free(device->capabilities, NULL, NULL);
 	free(device);
 }
 
 char* device_capability(const device_t* device, const char* name) {
 
-	assert(device!=NULL);
-	assert(name!=NULL);
-
-	devicedef_t* current = device->root;
-
-	char* value = NULL;
-
-	while((value = hashmap_get(current->capabilities, name)) == NULL && current->fall_back != NULL) {
-		current = repository_get(device->repository, current->fall_back);
-	}
-
-	return value;
+	return (char*)hashmap_get(device->capabilities, name);
 }
 
 char* device_id(const device_t* device) {
 
-	assert(device!=NULL);
-
-	return device->root->id;
+	return (char*)device->id;
 }
 
 char* device_user_agent(const device_t* device) {
 
-	assert(device!=NULL);
-
-	return device->root->user_agent;
+	return (char*)device->user_agent;
 }
 
 int device_cmp(const void* left, const void* right) {
 
-	assert(left!=NULL);
-	assert(right!=NULL);
+	device_t* ldevice = (device_t*)left;
+	device_t* rdevice = (device_t*)right;
 
-	device_t* ldevice = left;
-	device_t* rdevice = right;
-
-	return strcmp(ldevice->root->id, rdevice->root->id);
+	return strcmp(ldevice->id, rdevice->id);
 }
 
 uint32_t device_hash(const void* item) {
 
-	assert(item != NULL);
+	device_t* device = (device_t*)item;
 
-	device_t* device = item;
-
-	return string_hash(device->root->id);
+	return string_hash(device->id);
 }
 
 bool device_eq(const void* left, const void* right) {
 
-	assert(left!=NULL);
-	assert(right!=NULL);
+	device_t* ldevice = (device_t*)left;
+	device_t* rdevice = (device_t*)right;
 
-	device_t* ldevice = left;
-	device_t* rdevice = right;
-
-	return string_eq(ldevice->root->id, rdevice->root->id);
+	return string_eq(ldevice->id, rdevice->id);
 }

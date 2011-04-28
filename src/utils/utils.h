@@ -121,6 +121,6 @@ int ref_cmp(const void* litem, const void *ritem);
 bool ref_eq(const void* litem, const void *ritem);
 
 
-char* strrev(const char *s);
+char* strrev(char* dst, const char *src);
 
 #endif /* UTILS_H_ */
