@@ -1,0 +1,19 @@
+libwurfl THANKS file
+
+libwurfl has originally been written by Filippo De Luca <me@filippodeluca.com>.
+Many people further contributed to libwurfl by reporting problems, suggesting 
+various improvements or submitting actual code. 
+
+Here is a list of these people. Help me keep it complete and exempt of errors.
+
+Fantayeneh Asres Gizaw <fantayeneh@gmail.com>
+ * Help me to design the whole matching algorithms. 
+ * Implemented the LD matching algorithm.
+
+Luca Passani <luca.passani@gmail.com>
+ * Invented the WURFL file and standard
+ * Given me the know-how needed to development of this library.
+ 
+Arthur van Hoff, Josh Bloch, Neal Gafter
+ * Contributed to the hashtable implementation derived from the JDK 1.0
+   HashTable class.
