@@ -1,6 +1,6 @@
 libWURFL - WURFL Shared Library
 ==============================
-It is a very simple C library used to parse the WURFL file and match the
+It is a C library used to parse the WURFL file and match the
 HTTP request to obtain the mobile device capabilities.
 
 The interface is described in the wurfl.h and device.h files.
