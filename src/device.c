@@ -140,7 +140,9 @@ static hashmap_t* explode_capabilities(const devicedef_t* devicedef, hashmap_t* 
 		parent_capabilities = hashmap_init(&string_eq, &string_hash, NULL);
 	}
 	else {
-		parent_capabilities = explode_capabilities(hashmap_get(devices, devicedef->fall_back), devices);
+		devicedef_t* parent = devicedef->fall_back!=NULL?hashmap_get(devices, devicedef->fall_back):NULL;
+
+		parent_capabilities = explode_capabilities(parent, devices);
 		hashmap_putall(parent_capabilities, devicedef->capabilities);
 	}
 

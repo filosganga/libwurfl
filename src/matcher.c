@@ -28,6 +28,7 @@
 #include "utils/functors.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <errno.h>
@@ -47,7 +48,7 @@ typedef struct {
 	hashmap_t* map;
 } find_data_t;
 
-static uint32_t levenshtein_distance(const char* s, const char* t, uint32_t tolerance);
+static uint32_t levenshtein_distance(const char* s, const char* t);
 
 static devicedef_t* match(devicedef_t** candidates, size_t candidates_size, const char* needle, uint32_t tolerance);
 
@@ -131,7 +132,7 @@ static void select_candidates(hashtable_t* candidates, matcher_t* matcher, const
 		find_data_t sfx_data;
 		sfx_data.needle = ruser_agent;
 		sfx_data.map = hashmap_init(&string_eq, &string_hash, NULL);
-		patricia_search_foreach(matcher->suffix, ruser_agent, &find, &pfx_data);
+		patricia_search_foreach(matcher->suffix, ruser_agent, &find, &sfx_data);
 		hashmap_foreach_value(sfx_data.map, &functor_toset, &toset_data);
 
 		hashmap_free(sfx_data.map, NULL, NULL);
@@ -144,6 +145,8 @@ devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
 	hashtable_t* candidates = hashtable_init(&devicedef_eq, &devicedef_hash, NULL);
 	select_candidates(candidates, matcher, user_agent);
 
+	assert(!hashtable_empty(candidates));
+
 	functor_toarray_data_t toarray_data;
 	toarray_data.index = 0;
 	toarray_data.size = hashtable_size(candidates);
@@ -153,6 +156,8 @@ devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
 	}
 	hashtable_foreach(candidates, &functor_toarray, &toarray_data);
 	hashtable_free(candidates, NULL, NULL);
+
+	assert(toarray_data.size>0);
 
 	devicedef_t* matched = NULL;
 	if(toarray_data.size==1) {
@@ -193,7 +198,9 @@ static devicedef_t* match(devicedef_t** candidates, size_t candidates_size, cons
 		devicedef_t* candidate = candidates[i];
 
 		if(abs(strlen(candidate->user_agent) - needle_len) < tolerance) {
-			current = levenshtein_distance(candidate->user_agent, needle, tolerance);
+
+			current = levenshtein_distance(candidate->user_agent, needle);
+
 			if(current < best || current == 0) {
 				best = current;
 				match = candidate;
@@ -208,13 +215,10 @@ static devicedef_t* match(devicedef_t** candidates, size_t candidates_size, cons
 /**
  * Find the Levenshtein distance between two Strings.
  */
-static uint32_t levenshtein_distance(const char* s, const char* t, uint32_t tolerance) {
+static uint32_t levenshtein_distance(const char* s, const char* t) {
 	assert(s != NULL);
 	assert(t != NULL);
 
-	if(tolerance == 0) {
-		return strcmp(s, t) == 0?0:UINT32_MAX;
-	}
 
 	/*
 	 * The difference between this impl. and the previous is that, rather
@@ -272,12 +276,6 @@ static uint32_t levenshtein_distance(const char* s, const char* t, uint32_t tole
 			// minimum of cell to the left+1, to the top+1, diagonally left
 			// and up +cost
 			d[i] = min(min(d[i - 1] + 1, p[i] + 1), p[i - 1] + cost);
-
-			// Performance check
-			if (i == j && d[i] > (tolerance + 3)) {
-				return UINT32_MAX;
-			}
-
 		}
 
 		// copy current distance counts to 'previous row' distance counts
