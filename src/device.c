@@ -78,7 +78,7 @@ char** device_capabilities(const device_t* device, void* (dupe)(size_t size)) {
 	if(!toarray_data.array) {
 		error(1, errno, "error allocating array for capabilities");
 	}
-	memset(toarray_data.array, NULL, toarray_data.size);
+	memset(toarray_data.array, NULL, sizeof(char*) * toarray_data.size);
 
 	hashmap_foreach(device->capabilities, &capability_toarray, &toarray_data);
 

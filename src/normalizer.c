@@ -36,6 +36,7 @@ extern int errno;
 
 struct _normalizer_t {
 	regex_t* vdfnsn_regex;
+	regex_t* language_regex;
 	linkedlist_t* handlers;
 };
 
@@ -133,6 +134,26 @@ static bool normalize_vodafonesn(normalizer_t* normalizer, char* dst, const char
 	}
 }
 
+/**
+ * Removes the language (it-it, es-es, en-UK, etc etc) String.
+ */
+static bool normalize_language(normalizer_t* normalizer, char* dst, const char* src) {
+
+	strcpy(dst, src);
+
+	regmatch_t groups[2];
+	int matches = regexec(normalizer->language_regex, dst, (size_t)2, groups, REG_NOTBOL | REG_NOTEOL);
+	if(matches == 0) {
+
+		regmatch_t group = groups[1];
+		char *sn_idx = dst + group.rm_so;
+		memcpy(sn_idx, "xx-xx", 5);
+	}
+	else {
+		return false;
+	}
+}
+
 normalizer_t* normalizer_init() {
 
 	normalizer_t* normalizer = malloc(sizeof(normalizer_t));
@@ -142,10 +163,19 @@ normalizer_t* normalizer_init() {
 
 	normalizer->vdfnsn_regex = malloc(sizeof(regex_t));
 	if(!normalizer->vdfnsn_regex) {
-		error(1, errno, "error allocatng memory for vdfnsn_regex");
+		error(1, errno, "error allocating vodafone sn regex");
 	}
 
 	if(regcomp(normalizer->vdfnsn_regex, "/SN([0-9]+)[ ]*", REG_EXTENDED)!=0) {
+		assert(false);
+	}
+
+	normalizer->language_regex = malloc(sizeof(regex_t));
+	if(!normalizer->language_regex) {
+		error(1, errno, "error allocating language regex");
+	}
+
+	if(regcomp(normalizer->language_regex, "([a-zA-Z]{2}-[a-zA-Z]{2})", REG_EXTENDED)!=0) {
 		assert(false);
 	}
 
@@ -154,6 +184,7 @@ normalizer_t* normalizer_init() {
 	linkedlist_add(normalizer->handlers, &normalize_babelfish);
 	linkedlist_add(normalizer->handlers, &normalize_uplink);
 	linkedlist_add(normalizer->handlers, &normalize_vodafonesn);
+	linkedlist_add(normalizer->handlers, &normalize_language);
 
 	return normalizer;
 }

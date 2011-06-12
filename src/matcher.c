@@ -34,8 +34,6 @@
 #include <errno.h>
 #include <assert.h>
 
-#define LD_TOLL 5 // LD tolerance
-
 extern int errno;
 
 struct _matcher_t {
@@ -142,6 +140,9 @@ static void select_candidates(hashtable_t* candidates, matcher_t* matcher, const
 
 devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
 
+
+	devicedef_t* matched = NULL;
+
 	hashtable_t* candidates = hashtable_init(&devicedef_eq, &devicedef_hash, NULL);
 	select_candidates(candidates, matcher, user_agent);
 
@@ -159,7 +160,6 @@ devicedef_t* matcher_match(matcher_t* matcher, const char* user_agent) {
 
 	assert(toarray_data.size>0);
 
-	devicedef_t* matched = NULL;
 	if(toarray_data.size==1) {
 		matched = toarray_data.array[0];
 	}

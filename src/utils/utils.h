@@ -23,6 +23,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <sys/types.h>
 
 #ifndef min
 #define min(a,b) ((a)<(b))?(a):(b)
@@ -124,5 +127,19 @@ bool ref_eq(const void* litem, const void *ritem);
 
 
 char* strrev(char* dst, const char *src);
+
+
+/* Written by Simon Josefsson. */
+
+/* Get size_t, FILE, ssize_t.  And getdelim, if available.  */
+
+
+#ifndef HAVE_GETDELIM
+ssize_t getdelim (char **lineptr, size_t *n, int delimiter, FILE *stream);
+#endif /* !HAVE_GETDELIM */
+
+#ifndef HAVE_GETLINE
+ssize_t getline (char **lineptr, size_t *n, FILE *stream);
+#endif /* !HAVE_GETLINE */
 
 #endif /* UTILS_H_ */

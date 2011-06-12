@@ -35,6 +35,7 @@ libwurfl_la_SOURCES = \
 	utils/linkedlist.c \
 	utils/patricia.c \
 	utils/error.c \
+	utils/getline.c \
 	utils/utils.c 
 	
 libwurfl_la_LDFLAGS = -version-info 0:0:0
