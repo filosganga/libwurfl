@@ -1,19 +1,21 @@
-/*
- * Copyright 2011 ff-dev.org
+/* Copyright (C) 2011 Fantayeneh Asres Gizaw, Filippo De Luca
+ *  
+ * This file is part of libWURFL.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * libWURFL is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or 
+ * any later version.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * libWURFL is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with libWURFL.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+ 
 /* Written by Filippo De Luca <me@filippodeluca.com>.  */
 
 #include "device-impl.h"
@@ -76,7 +78,7 @@ char** device_capabilities(const device_t* device, void* (dupe)(size_t size)) {
 	if(!toarray_data.array) {
 		error(1, errno, "error allocating array for capabilities");
 	}
-	memset(toarray_data.array, NULL, toarray_data.size);
+	memset(toarray_data.array, NULL, sizeof(char*) * toarray_data.size);
 
 	hashmap_foreach(device->capabilities, &capability_toarray, &toarray_data);
 
@@ -132,15 +134,18 @@ static bool capability_toarray(void* item, void* xtra) {
 
 static hashmap_t* explode_capabilities(const devicedef_t* devicedef, hashmap_t* devices) {
 
-	hashmap_t* parent_capabilities;
-	if(devicedef->fall_back!=NULL) {
-		parent_capabilities = explode_capabilities(hashmap_get(devices, devicedef->fall_back), devices);
-	}
-	else {
+	hashmap_t *parent_capabilities;
+
+	if(devicedef == NULL) {
 		parent_capabilities = hashmap_init(&string_eq, &string_hash, NULL);
 	}
+	else {
+		devicedef_t* parent = devicedef->fall_back!=NULL?hashmap_get(devices, devicedef->fall_back):NULL;
 
-	hashmap_putall(parent_capabilities, devicedef->capabilities);
+		parent_capabilities = explode_capabilities(parent, devices);
+		hashmap_putall(parent_capabilities, devicedef->capabilities);
+	}
+
 	return parent_capabilities;
 }
 

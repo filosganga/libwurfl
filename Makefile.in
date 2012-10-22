@@ -13,6 +13,23 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
+# Copyright (C) 2011 Fantayeneh Asres Gizaw, Filippo De Luca
+#   
+# This file is part of libWURFL.
+# 
+# libWURFL is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or 
+# any later version.
+# 
+# libWURFL is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with libWURFL.  If not, see <http://www.gnu.org/licenses/>.
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -33,8 +50,8 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = .
 DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(top_srcdir)/configure INSTALL THANKS \
-	build/config.guess build/config.sub build/depcomp \
+	$(srcdir)/Makefile.in $(top_srcdir)/configure COPYING INSTALL \
+	THANKS build/config.guess build/config.sub build/depcomp \
 	build/install-sh build/ltmain.sh build/missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \

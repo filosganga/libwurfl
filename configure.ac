@@ -5,7 +5,7 @@ AC_PREREQ(2.61)
 AC_INIT([libwurfl], [0.1], [me@filippodeluca.com])
 AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_SRCDIR([src/wurfl.h])
-AC_CONFIG_HEADER([src/config.h:src/config.h.in])
+AC_CONFIG_HEADER([src/config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign])
 LT_INIT
@@ -36,6 +36,8 @@ AC_SEARCH_LIBS([xmlSAXVersion],[xml2], [
 AC_SEARCH_LIBS([iconv_open],[iconv], [], [
 	AC_MSG_ERROR([Failed to locate the iconv library])
 ])
+
+
 
 # Check for Apache
 AC_ARG_WITH(apache, [  --with-apache        Specify installation directory for Apache 2.2.x], [
@@ -79,7 +81,7 @@ AC_FUNC_ERROR_AT_LINE
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([memset strdup strstr strcpy strcmp])
+AC_CHECK_FUNCS([memset strdup strstr strcpy strcmp getline getdelim])
 
 AC_CONFIG_FILES([Makefile src/Makefile]) 
 AC_OUTPUT
