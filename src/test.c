@@ -35,6 +35,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <errno.h>
+#include <check.h>
 
 extern int errno;
 
@@ -43,6 +44,8 @@ typedef struct {
 	const char* ids;
 } test_entry_t;
 
+const char* root = "../etc/wurfl.xml";
+const char* patches[] = {NULL};
 
 bool test_user_agent(const void* item, void* data) {
 	wurfl_t* wurfl = (wurfl_t*)data;
@@ -61,11 +64,7 @@ bool test_user_agent(const void* item, void* data) {
 	}
 }
 
-
 int test_user_agents(linkedlist_t* test_entries) {
-
-	const char* root = "../etc/wurfl.xml";
-	const char* patches[] = {"../etc/web_browsers_patch.xml", NULL};
 
 	wurfl_t* wurfl = wurfl_init(root, patches);
 
@@ -74,14 +73,9 @@ int test_user_agents(linkedlist_t* test_entries) {
 	wurfl_free(wurfl);
 }
 
-int test_wurfl() {
+START_TEST(capabilities) {
 
 	const char* user_agent = "Mozilla/5.0 (Linux; U; Android 2.2; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1";
-	//const char* user_agent = "Chrome";
-
-	const char* root = "../etc/wurfl.xml";
-	//const char* patches[] = {};
-	const char* patches[] = {"../etc/web_browsers_patch.xml", NULL};
 
 	wurfl_t* wurfl = wurfl_init(root, patches);
 
@@ -99,13 +93,17 @@ int test_wurfl() {
 
 		free(capabilities);
 	}
+	
+	fail_unless(device!=NULL, NULL);
 
+	device_free(device);
 	wurfl_free(wurfl);
-
-	return 0;
 }
+END_TEST
 
-int test_normalizers() {
+START_TEST(normalizers) {
+
+	const char* expected = "Mozilla/5.0 (Linux; U; Android 2.2; xx-xx; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1";
 
 	const char* language_input = "Mozilla/5.0 (Linux; U; Android 2.2; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1";
 	const char language_output[1024];
@@ -115,22 +113,66 @@ int test_normalizers() {
 
 	normalizer_apply(normalizer, language_output, language_input);
 	fprintf(stderr, "Normalized User-Agent:\n %s\n", language_output);
-	if(strcmp(language_output, "Mozilla/5.0 (Linux; U; Android 2.2; xx-xx; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1")!=0) {
-		assert(false);
-	}
+	
+	fail_unless(strcmp(language_output, expected)==0, NULL);
 
 	normalizer_free(normalizer);
+}
+END_TEST
 
-	return 0;
+static int test_match(const char* user_agent, const char* expected_id) {
+	
+	const char* root = "../etc/wurfl.xml";
+	const char* patches[] = {NULL};
+
+	wurfl_t* wurfl = wurfl_init(root, patches);
+	
+	device_t* device = wurfl_match(wurfl, user_agent);
+	
+	int result = strcmp(device_id(device), expected_id);
+	if(result!=0) {
+		fprintf(stderr, "BAd match:\n\tuser-agent: %s\n\tmatched to: %s\n\twith user-agent: %s\n\n",user_agent, device_id(device), device_user_agent(device));	
+	}
+	
+	device_free(device);
+	wurfl_free(wurfl);
+	
+	return result;
 }
 
+START_TEST(matching) {
+	
+	const char* user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/536.26.14 (KHTML, like Gecko) Version/6.0.1 Safari/536.26.14";
+	const char* expected = "safari_6_0_mac";
 
-int main(int argc, char **argv) {
+	fail_unless(test_match(user_agent, expected)==0, NULL);	
+	
+}
+END_TEST
 
-	test_normalizers();
-	test_wurfl();
-	//test_user_agents();
+Suite* wurfl_suite (void) {
+		
+	TCase* tc_core = tcase_create("Core");
+	tcase_add_test(tc_core, capabilities);
+	tcase_add_test(tc_core, normalizers);
+	tcase_add_test(tc_core, matching);
+	
+	Suite* suite = suite_create("libwurfl");
+	suite_add_tcase(suite, tc_core);
+	
+	return suite;
+}
 
-	return 0;
+int main(int argc, char** argv) {
+	
+	int number_failed;
+	
+	Suite* suite = wurfl_suite();
+	SRunner* runner = srunner_create(suite);
+	srunner_run_all(runner, CK_NORMAL);
+	number_failed = srunner_ntests_failed (runner);
+	srunner_free(runner);
+	
+	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

@@ -37,7 +37,10 @@ AC_SEARCH_LIBS([iconv_open],[iconv], [], [
 	AC_MSG_ERROR([Failed to locate the iconv library])
 ])
 
-
+AM_PATH_CHECK(,[have_check="yes"],
+	AC_MSG_WARN([Check not found; cannot run unit test!])
+	[have_check="no"])
+AM_CONDITIONAL(HAVE_CHECK, test x"$have_check" = "xyes")
 
 # Check for Apache
 AC_ARG_WITH(apache, [  --with-apache        Specify installation directory for Apache 2.2.x], [

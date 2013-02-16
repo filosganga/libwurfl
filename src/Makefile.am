@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with libWURFL.  If not, see <http://www.gnu.org/licenses/>.
 
-INCLUDES = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir) @CHECK_CFLAGS@
 
 nobase_include_HEADERS =  \
 	wurfl.h \
@@ -42,10 +42,15 @@ libwurfl_la_LDFLAGS = -version-info 0:0:0
 
 check_PROGRAMS = test
 
-test_SOURCES = test.c
-test_LDADD = libwurfl.la
+test_SOURCES = test.c $(top_builddir)/src/wurfl.h
+test_CFLAGS = @CHECK_CFLAGS@
 test_LDFLAGS = -static
-#test_CPPFLAGS = -I/usr/include -I/usr/local/include -I/usr/include/libxml2
+#test_CPPFLAGS = -I/usr/include -I/usr/local/include -I/usr/include/libxml2 @CHECK_CFLAGS@
+test_LDADD = libwurfl.la @CHECK_LIBS@
 
+if HAVE_CHECK
 TESTS = $(check_PROGRAMS)
+else
+TEST =
+endif
 

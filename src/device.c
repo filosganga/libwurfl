@@ -53,7 +53,7 @@ device_t* device_init(hashmap_t* devices, const devicedef_t* devicedef) {
 	return device;
 }
 
-void device_release(device_t* device) {
+void device_free(device_t* device) {
 	hashmap_free(device->capabilities, NULL, NULL);
 	free(device);
 }
