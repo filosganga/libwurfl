@@ -1,5 +1,8 @@
 libWURFL - WURFL Shared Library
 ==============================
+**_THIS IS NOT THE STANDARD LIBWURFL BY ScientiaMobile.
+This is an older open-source bit of software that is not supported, not affiliated with ScientiaMobile and does not provide the features of the standard libwurfl to users of WURFL._**
+
 It is a C library used to parse the WURFL file and match the
 HTTP request to obtain the mobile device capabilities.
 
